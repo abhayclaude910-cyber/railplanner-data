@@ -104,10 +104,18 @@ class FeedData:
             if re.fullmatch(r"\d{3}[A-Z]", short) and (
                     cfg.get("code_route_label") or re.search(r"SNCF|Chemins de fer Fran", agency_name)):
                 short = cfg.get("code_route_label") or "SNCF"
+            long_name = (r.get("route_long_name") or "").strip()
+            # Train types written in the local alphabet ("БВ") get an English word from feeds.json.
+            label = cfg.get("route_labels", {}).get(short)
+            if label:
+                short, long_name = label
+            if not short and kind == "rail":
+                # Nothing to show before the train number ("6152"): name the operator instead.
+                short = cfg.get("default_label") or (agency_name if 0 < len(agency_name) <= 12 else "")
             self.routes[r["route_id"]] = {
                 "kind": kind, "type": rt,
-                "short": short,
-                "long": (r.get("route_long_name") or "").strip(),
+                "short": latin_name(short),
+                "long": latin_name(long_name),
                 "agency": agencies.get(r.get("agency_id", ""), next(iter(agencies.values()), "")),
                 "color": int(color, 16) if re.fullmatch(r"[0-9A-Fa-f]{6}", color) else None,
             }
@@ -124,7 +132,7 @@ class FeedData:
                 number, headsign = headsign, ""
             self.trips[r["trip_id"]] = {
                 "route": r["route_id"], "service": r["service_id"],
-                "headsign": headsign,
+                "headsign": latin_name(headsign),
                 "number": number,
                 "bikes": (r.get("bikes_allowed") or "").strip(),
                 "rt": (r.get("realtime_trip_id") or r.get("original_trip_id") or "").strip(),
@@ -432,6 +440,14 @@ def latinize(s):
 LATIN_EXTRA = {"Sofiya": "Sofia"}
 
 
+def latin_name(s):
+    """Display form of a Cyrillic name: 'София Централна' -> 'Sofia Tsentralna'; other names unchanged."""
+    t = latinize(s)
+    if not t:
+        return s
+    return re.sub(r"[^\W\d_]+", lambda m: LATIN_EXTRA.get(m.group(0), m.group(0)), t)
+
+
 def transliterate(s):
     """German/Nordic spelling without special letters: München -> Muenchen."""
     for a, b in (("ä", "ae"), ("ö", "oe"), ("ü", "ue"), ("Ä", "Ae"), ("Ö", "Oe"), ("Ü", "Ue"), ("ß", "ss"),
@@ -625,8 +641,9 @@ def main():
         lats = [m[2]["lat"] for m in members if m[2]["lat"] is not None]
         lons = [m[2]["lon"] for m in members if m[2]["lon"] is not None]
         transfer = max([m[3].transfer.get(m[1], 0) for m in members] + [0]) or DEFAULT_TRANSFER
+        shown = latin_name(tidy_name(best[2]["name"]))
         st.update({
-            "name": tidy_name(best[2]["name"]), "alt": [n for n in names if n != best[2]["name"]],
+            "name": shown, "alt": [n for n in names if n not in (shown, best[2]["name"]) or shown != tidy_name(best[2]["name"]) and n == best[2]["name"]],
             "lat": sum(lats) / len(lats) if lats else 0.0, "lon": sum(lons) / len(lons) if lons else 0.0,
             "country": country, "uic": uic, "transfer": transfer, "deps": dep_count[gid],
         })

@@ -213,7 +213,8 @@
       "licence": "ODbL",
       "credit": "Source: Željeznički prevoz Crne Gore, converted by jbb.ghsq.de",
       "source_page": "https://www.zpcg.me/",
-      "name_priority": 2
+      "name_priority": 2,
+      "default_label": "ZPCG"
     },
     {
       "id": "pl-ic",
@@ -245,7 +246,33 @@
       "licence": "CC BY 4.0",
       "credit": "Source: BDŽ, GTFS by livetransport.eu",
       "source_page": "https://gtfs.livetransport.eu/",
-      "name_priority": 2
+      "name_priority": 2,
+      "route_labels": {
+        "ЕВ": [
+          "Express",
+          "Express train"
+        ],
+        "БВ": [
+          "Fast",
+          "Fast train"
+        ],
+        "МБВ": [
+          "Intl Fast",
+          "International fast train"
+        ],
+        "ПВ": [
+          "Passenger",
+          "Passenger train"
+        ],
+        "КПВ": [
+          "Suburban",
+          "Suburban train"
+        ],
+        "АВТ": [
+          "Bus",
+          "Replacement bus"
+        ]
+      }
     }
   ]
 }
