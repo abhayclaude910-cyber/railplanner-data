@@ -55,7 +55,10 @@ UIC_COUNTRY = {
 BOX = {
     "DE": (47.2, 5.8, 55.1, 15.1), "CH": (45.8, 5.9, 47.85, 10.5), "NL": (50.7, 3.3, 53.6, 7.25),
     "FR": (41.3, -5.2, 51.1, 9.6), "ES": (35.9, -9.4, 43.8, 4.4), "FI": (59.7, 20.5, 70.1, 31.6),
-    "NO": (57.9, 4.5, 71.2, 31.1),
+    "NO": (57.9, 4.5, 71.2, 31.1), "BE": (49.4, 2.5, 51.6, 6.5), "IE": (51.3, -10.7, 55.5, -5.4),
+    "LU": (49.4, 5.7, 50.2, 6.6), "PT": (36.9, -9.6, 42.2, -6.1), "EE": (57.5, 21.7, 59.8, 28.3),
+    "RO": (43.6, 20.2, 48.3, 29.8), "LV": (55.6, 20.9, 58.1, 28.3), "ME": (41.8, 18.4, 43.6, 20.4),
+    "PL": (49.0, 14.1, 54.9, 24.2), "BG": (41.2, 22.3, 44.3, 28.7),
 }
 
 
@@ -388,12 +391,45 @@ def country_by_box(lat, lon):
 ROUGH_BOX = {
     "DE": (47.2, 5.8, 55.1, 15.1), "CH": (45.8, 5.9, 47.85, 10.5), "NL": (50.7, 3.3, 53.6, 7.25),
     "SE": (55.3, 10.9, 69.1, 24.2), "GB": (49.9, -8.2, 58.7, 1.8), "ES": (35.9, -9.4, 43.8, 4.4),
-    "FI": (59.7, 20.5, 70.1, 31.6), "RU": (54.0, 28.0, 70.0, 60.0), "NO": (57.9, 4.5, 71.2, 31.1),
+    "FI": (59.7, 20.5, 70.1, 31.6), "RU": (54.0, 28.0, 70.0, 60.0), "IE": (51.3, -10.7, 55.5, -5.4),
+    "PT": (36.9, -9.6, 42.2, -6.1), "EE": (57.5, 21.7, 59.8, 28.3), "LV": (55.6, 20.9, 58.1, 28.3),
+    "LT": (53.8, 20.9, 56.5, 26.9), "RO": (43.6, 20.2, 48.3, 29.8), "BG": (41.2, 22.3, 44.3, 28.7),
+    "ME": (41.8, 18.4, 43.6, 20.4), "RS": (42.2, 18.8, 46.2, 23.1), "GR": (34.8, 19.3, 41.8, 29.7),
+    "TR": (35.8, 25.6, 42.2, 44.9), "MK": (40.8, 20.4, 42.4, 23.1), "BA": (42.5, 15.7, 45.3, 19.7),
+    "UA": (44.3, 22.1, 52.4, 40.3), "BY": (51.2, 23.1, 56.2, 32.8), "MD": (45.4, 26.6, 48.5, 30.2), "NO": (57.9, 4.5, 71.2, 31.1),
     "AT": (46.4, 9.5, 49.0, 17.2), "CZ": (48.55, 12.1, 51.06, 18.9), "BE": (49.5, 2.5, 51.5, 6.4),
     "LU": (49.45, 5.73, 50.18, 6.53), "FR": (42.3, -4.8, 51.1, 8.2), "PL": (49.0, 14.1, 54.9, 24.2),
     "DK": (54.55, 8.0, 57.8, 15.2), "IT": (36.6, 6.6, 47.1, 18.5), "SK": (47.7, 16.8, 49.6, 22.6),
     "HU": (45.7, 16.1, 48.6, 22.9), "SI": (45.4, 13.4, 46.9, 16.6),
 }
+
+
+CYRILLIC = {
+    "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ж": "zh", "з": "z", "и": "i", "й": "y",
+    "к": "k", "л": "l", "м": "m", "н": "n", "о": "o", "п": "p", "р": "r", "с": "s", "т": "t", "у": "u",
+    "ф": "f", "х": "h", "ц": "ts", "ч": "ch", "ш": "sh", "щ": "sht", "ъ": "a", "ь": "y", "ю": "yu", "я": "ya",
+    "ђ": "dj", "ј": "j", "љ": "lj", "њ": "nj", "ћ": "c", "џ": "dz", "ѓ": "gj", "ќ": "kj", "ѕ": "dz",
+    "ё": "e", "ы": "y", "э": "e", "і": "i", "ї": "yi", "є": "ye",
+}
+
+
+def latinize(s):
+    """'София' -> 'Sofiya'. Returns '' when there is no Cyrillic in the name."""
+    if not any("\u0400" <= ch <= "\u04ff" for ch in s):
+        return ""
+    out = []
+    for ch in s:
+        low = ch.lower()
+        t = CYRILLIC.get(low)
+        if t is None:
+            out.append(ch)
+        else:
+            out.append(t.capitalize() if ch != low and t else t)
+    return "".join(out)
+
+
+# Well-known English forms that plain transliteration does not give.
+LATIN_EXTRA = {"Sofiya": "Sofia"}
 
 
 def transliterate(s):
@@ -579,6 +615,9 @@ def main():
                                               not re.search(r"[,/]", tidy_name(nodes[m][2]["name"])), node_dep[m]))]
         names = sorted({m[2]["name"] for m in members if m[2]["name"]})
         names += [t for t in {transliterate(n) for n in names} if t not in names]
+        latin = {latinize(n) for n in names} - {""}
+        latin |= {LATIN_EXTRA[x] for x in latin if x in LATIN_EXTRA}
+        names += [t for t in latin if t not in names]
         lats = [m[2]["lat"] for m in members if m[2]["lat"] is not None]
         lons = [m[2]["lon"] for m in members if m[2]["lon"] is not None]
         transfer = max([m[3].transfer.get(m[1], 0) for m in members] + [0]) or DEFAULT_TRANSFER
@@ -615,6 +654,15 @@ def main():
     missing = [n for n in aliases if n not in by_name]
     if missing:
         warnings.append("aliases for unknown station names: " + ", ".join(missing))
+    # Busyness = departures per day the station's country has data for (a one-month feed is not "empty").
+    country_days = {}
+    for fd in feeds:
+        union = 0
+        for m in fd.masks.values():
+            union |= int.from_bytes(m, "little")
+        country_days[fd.country] = max(country_days.get(fd.country, 0), bin(union).count("1"))
+    for gid, st in enumerate(stations):
+        st["per_day"] = sum(n / max(1, country_days.get(c, NDAYS)) for c, n in feed_dep[gid].items())
     unknown = sum(1 for s in stations if s["country"] == "??")
     if unknown:
         warnings.append(f"{unknown} stations outside their feed's country and without a UIC number (country '??')")
@@ -825,7 +873,7 @@ def write_index(path, version, stations, trips, pack_countries):
         if not packs_at[g]:
             continue
         rows.append((g, s["name"], " | ".join(s["alt"]) or None, round(s["lat"], 6), round(s["lon"], 6),
-                     s["country"], s["uic"] or None, s["deps"] // NDAYS, ",".join(sorted(packs_at[g]))))
+                     s["country"], s["uic"] or None, round(s.get("per_day", 0)), ",".join(sorted(packs_at[g]))))
     db.executemany("INSERT INTO stations VALUES(?,?,?,?,?,?,?,?,?)", rows)
     db.execute("INSERT INTO stations_fts(rowid, name, alt) SELECT id, name, coalesce(alt,'') FROM stations")
     db.execute("INSERT INTO stations_fts(stations_fts) VALUES('optimize')")

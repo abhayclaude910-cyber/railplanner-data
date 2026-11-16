@@ -25,9 +25,24 @@ python pipeline/query.py route "Muenchen Hbf" "Amsterdam Centraal" 2026-11-20 08
 | Renfe high-speed, long and medium distance (Spain) | CC BY 4.0 | Source: Renfe Data |
 | Digitraffic passenger trains (Finland) | CC BY 4.0 | Source: Fintraffic / Digitraffic, licence CC 4.0 BY |
 | Entur: Vy, Go-Ahead Nordic, SJ Norge, Flytoget (Norway) | NLOD | Source: Entur |
+| SNCB/NMBS (Belgium) | SNCB public data (free) | Source: SNCB/NMBS public data |
+| Irish Rail via Transport for Ireland | CC BY-SA 4.0 per catalogue (NTA states CC BY 4.0; to confirm) | Source: National Transport Authority |
+| Luxembourg national timetable (newest weekly file) | CC BY 4.0 | Source: Administration des transports publics, data.public.lu |
+| CP - Comboios de Portugal | Public file from CP, licence not stated (to confirm) | Source: CP |
+| Elron (Estonia) | CC0 | Source: Elron |
+| Romanian railway operators | OGL-ROU 1.0 | Source: data.gov.ro, converted by jbb.ghsq.de |
+| Latvia national timetable | CC0 | Source: compiled by Gustavs Svalbe |
+| ZPCG (Montenegro) | ODbL | Source: ZPCG, converted by jbb.ghsq.de |
+| PKP Intercity + Polish regional trains | CC BY 4.0 | Source: Polish operators, GTFS by gtfs.kasznia.net |
+| BDŽ (Bulgaria) | CC BY 4.0 | Source: BDŽ, GTFS by livetransport.eu |
 
 Live data used by the app (not stored here): OVapi train updates (Netherlands, CC0).
 
-**Not included yet:** Belgium (only an unofficial mirror; SNCB terms unclear), Austria (no open ÖBB timetable), Italy, Sweden and Denmark (feeds need a key or an agreement), USA / Canada / Australia / Taiwan (need time-zone support and licence checks).
+**Not included yet** (of the 33 Interrail countries):
+- Licence unknown, held back: Lithuania, Greece, North Macedonia, Türkiye, Bosnia and Herzegovina (community-converted files without a stated licence).
+- Need a free account or key (keys go into GitHub Actions secrets, never the app): Austria, Hungary, Slovenia, Sweden, Denmark, Great Britain.
+- Current file not found: Croatia (the official link serves the 2024-25 timetable), Serbia (link broken).
+- No open national rail timetable found: Czechia, Slovakia, Italy (only an unofficial Trenitalia scraper).
+- Outside Europe (USA, Canada, Australia, Taiwan): need time-zone support and licence checks.
 
 The packs are changed (filtered to trains, ferries and coaches; stations merged across feeds) and keep each source's licence. Every pack carries these credits in its `meta.credits`.

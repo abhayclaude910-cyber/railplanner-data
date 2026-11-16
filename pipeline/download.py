@@ -23,6 +23,19 @@ def load_feeds():
         return json.load(f)["feeds"]
 
 
+def resolve_url(feed):
+    """The feed's download link. Some sources publish a new dated file each week; look up the newest."""
+    ds = feed.get("data_public_lu_dataset")
+    if ds:
+        api = f"https://data.public.lu/api/1/datasets/{ds}/"
+        with urllib.request.urlopen(urllib.request.Request(api, headers={"User-Agent": UA}), timeout=60) as r:
+            res = json.load(r)["resources"]
+        zips = [x for x in res if x["url"].lower().endswith(".zip")]
+        newest = max(zips, key=lambda x: x.get("last_modified") or "")
+        return newest["url"]
+    return feed["url"]
+
+
 def download(feed):
     os.makedirs(RAW, exist_ok=True)
     target = os.path.join(RAW, feed["id"] + ".zip")
@@ -32,7 +45,8 @@ def download(feed):
         with open(info_path, encoding="utf-8") as f:
             old = json.load(f)
 
-    req = urllib.request.Request(feed["url"], headers={"User-Agent": UA, **feed.get("headers", {})})
+    url = resolve_url(feed)
+    req = urllib.request.Request(url, headers={"User-Agent": UA, **feed.get("headers", {})})
     with urllib.request.urlopen(req, timeout=60) as res:
         size = int(res.headers.get("Content-Length") or 0)
         modified = res.headers.get("Last-Modified") or ""
@@ -62,7 +76,7 @@ def download(feed):
         raise RuntimeError(f"{feed['id']}: got {got} bytes, expected {size}")
     os.replace(tmp, target)
     with open(info_path, "w", encoding="utf-8") as f:
-        json.dump({"url": feed["url"], "size": got, "last_modified": modified,
+        json.dump({"url": url, "size": got, "last_modified": modified,
                    "downloaded": time.strftime("%Y-%m-%dT%H:%M:%S")}, f, indent=1)
     print(f"{feed['id']}: done {got / 1e6:.1f} MB in {time.time() - start:.0f}s", flush=True)
 

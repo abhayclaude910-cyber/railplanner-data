@@ -33,8 +33,9 @@ def find(text, limit=8):
     q = " ".join(f'"{w}"*' for w in text.replace('"', "").split())
     rows = db.execute(
         "SELECT s.id, s.name, s.country, s.rank, s.packs, s.alt FROM stations_fts f JOIN stations s ON s.id=f.rowid "
-        "WHERE stations_fts MATCH ? ORDER BY (lower(s.name) = lower(?)) DESC, s.rank DESC LIMIT ?",
-        (q, text.strip(), limit)).fetchall()
+        "WHERE stations_fts MATCH ? ORDER BY (lower(s.name) = lower(?) OR "
+        "instr(' | ' || lower(coalesce(s.alt,'')) || ' | ', ' | ' || lower(?) || ' | ') > 0) DESC, s.rank DESC LIMIT ?",
+        (q, text.strip(), text.strip(), limit)).fetchall()
     return rows
 
 

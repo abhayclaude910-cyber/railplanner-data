@@ -133,6 +133,119 @@
       "source_page": "https://developer.entur.org/stops-and-timetable-data",
       "name_priority": 2,
       "id_space": "entur"
+    },
+    {
+      "id": "be",
+      "country": "BE",
+      "name": "SNCB/NMBS (Belgium)",
+      "url": "https://sncb-opendata.hafas.de/gtfs/static/c21ac6758dd25af84cca5b707f3cb3de",
+      "licence": "SNCB public data (free)",
+      "credit": "Source: SNCB/NMBS public data",
+      "source_page": "https://www.belgiantrain.be/en/3rd-party-services/mobility-service-providers/public-data",
+      "name_priority": 2
+    },
+    {
+      "id": "ie",
+      "country": "IE",
+      "name": "Irish Rail via Transport for Ireland",
+      "url": "https://www.transportforireland.ie/transitData/Data/GTFS_Irish_Rail.zip",
+      "licence": "CC BY-SA 4.0 (check: NTA states CC BY 4.0)",
+      "credit": "Source: National Transport Authority / Transport for Ireland",
+      "source_page": "https://www.transportforireland.ie/transitData/PT_Data.html",
+      "name_priority": 2
+    },
+    {
+      "id": "lu",
+      "country": "LU",
+      "name": "Luxembourg national timetable (CFL and others)",
+      "url": "https://data.public.lu/datasets/horaires-et-arrets-des-transport-publics-gtfs/",
+      "licence": "CC BY 4.0",
+      "credit": "Source: Administration des transports publics, data.public.lu",
+      "source_page": "https://data.public.lu/",
+      "name_priority": 2,
+      "data_public_lu_dataset": "horaires-et-arrets-des-transport-publics-gtfs"
+    },
+    {
+      "id": "pt",
+      "country": "PT",
+      "name": "CP - Comboios de Portugal",
+      "url": "https://publico.cp.pt/gtfs/gtfs.zip",
+      "licence": "Published by CP (licence not stated: check)",
+      "credit": "Source: CP - Comboios de Portugal",
+      "source_page": "https://www.cp.pt/",
+      "name_priority": 2
+    },
+    {
+      "id": "ee",
+      "country": "EE",
+      "name": "Elron (Estonia)",
+      "url": "https://eu-gtfs.remix.com/elron.zip",
+      "licence": "CC0",
+      "credit": "Source: Elron",
+      "source_page": "https://elron.ee/",
+      "name_priority": 2
+    },
+    {
+      "id": "ro",
+      "country": "RO",
+      "name": "Romanian railway operators (CFR and others)",
+      "url": "https://jbb.ghsq.de/gtfs/ro-railway.gtfs.zip",
+      "licence": "OGL-ROU 1.0",
+      "credit": "Source: data.gov.ro, converted by jbb.ghsq.de",
+      "source_page": "https://data.gov.ro/",
+      "name_priority": 2
+    },
+    {
+      "id": "lv",
+      "country": "LV",
+      "name": "Latvia national timetable",
+      "url": "https://gsvalbe.id.lv/pieturas/dati/latvia.zip",
+      "licence": "CC0",
+      "credit": "Source: Latvian public transport data, compiled by Gustavs Svalbe",
+      "source_page": "https://gsvalbe.id.lv/",
+      "name_priority": 2
+    },
+    {
+      "id": "me",
+      "country": "ME",
+      "name": "ZPCG (Montenegro)",
+      "url": "https://jbb.ghsq.de/gtfs/me-zpcg.gtfs.zip",
+      "licence": "ODbL",
+      "credit": "Source: Željeznički prevoz Crne Gore, converted by jbb.ghsq.de",
+      "source_page": "https://www.zpcg.me/",
+      "name_priority": 2
+    },
+    {
+      "id": "pl-ic",
+      "country": "PL",
+      "name": "PKP Intercity (Poland)",
+      "url": "https://gtfs.kasznia.net/static/pkp-ic.zip",
+      "licence": "CC BY 4.0",
+      "credit": "Source: PKP Intercity data, GTFS by gtfs.kasznia.net",
+      "source_page": "https://gtfs.kasznia.net/",
+      "name_priority": 2,
+      "id_space": "pl"
+    },
+    {
+      "id": "pl-reg",
+      "country": "PL",
+      "name": "Polish regional trains",
+      "url": "https://gtfs.kasznia.net/static/polish-trains.zip",
+      "licence": "CC BY 4.0",
+      "credit": "Source: Polish rail operators, GTFS by gtfs.kasznia.net",
+      "source_page": "https://gtfs.kasznia.net/",
+      "name_priority": 2,
+      "id_space": "pl"
+    },
+    {
+      "id": "bg",
+      "country": "BG",
+      "name": "BDŽ (Bulgaria)",
+      "url": "https://gtfs.livetransport.eu/gtfs/bdz.zip",
+      "licence": "CC BY 4.0",
+      "credit": "Source: BDŽ, GTFS by livetransport.eu",
+      "source_page": "https://gtfs.livetransport.eu/",
+      "name_priority": 2
     }
   ]
 }
