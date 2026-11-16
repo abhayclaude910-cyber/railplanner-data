@@ -1,0 +1,59 @@
+name: Build packs
+
+# Monthly on the 1st, plus a "Run workflow" button for timetable changes (e.g. mid-December).
+on:
+  schedule:
+    - cron: "0 3 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write   # to create Releases with the built packs
+
+concurrency:
+  group: build-packs
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check SQLite has FTS5
+        run: python -c "import sqlite3; sqlite3.connect(':memory:').execute('create virtual table t using fts5(x)'); print(sqlite3.sqlite_version)"
+
+      - name: Download feeds
+        run: python pipeline/download.py
+
+      - name: Pick release tag
+        run: echo "RELEASE_TAG=data-$(date -u +%Y%m%d)-r${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+
+      - name: Build packs
+        run: python pipeline/build.py
+
+      - name: Check the build before publishing
+        run: python pipeline/verify_out.py
+
+      - name: Publish Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$RELEASE_TAG" out/*.gz out/manifest.json out/report.txt \
+            --title "Timetable packs $(date -u +%Y-%m-%d)" \
+            --notes-file out/report.txt \
+            --latest
+
+      - name: Keep only the newest 6 Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --limit 100 --json tagName,createdAt \
+            --jq 'sort_by(.createdAt) | reverse | .[6:] | .[].tagName' |
+          while read -r tag; do
+            gh release delete "$tag" --yes --cleanup-tag
+          done

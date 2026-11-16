@@ -1,0 +1,10 @@
+{
+  "_note": "Which operators rail passes (Interrail/Eurail) usually do NOT cover. Matched against the operator (agency) name, case-insensitive, and route short names. The app shows these as a hint ('check if your pass is valid'), never as a promise. VERIFY against the current official pass conditions before each release; edit this file and rebuild to change it.",
+  "not_valid": {
+    "agency_contains": ["flixtrain", "govolta"],
+    "route_short_prefix": ["FLX"]
+  },
+  "discount_only": {
+    "agency_contains": ["pilatusbahnen", "rigi bahnen", "wengernalpbahn", "jungfraubahn", "gornergrat", "stanserhorn", "titlis"]
+  }
+}

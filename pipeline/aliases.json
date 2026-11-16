@@ -1,0 +1,17 @@
+{
+  "München Hbf": ["Munich Central", "Munich"],
+  "Köln Hbf": ["Cologne Central", "Cologne"],
+  "Nürnberg Hbf": ["Nuremberg"],
+  "Hannover Hbf": ["Hanover"],
+  "Frankfurt (Main) Hbf": ["Frankfurt Central", "Frankfurt am Main"],
+  "Braunschweig Hbf": ["Brunswick"],
+  "Wien Hbf": ["Vienna Central", "Vienna"],
+  "Praha hl.n.": ["Prague Central", "Prague"],
+  "Genève": ["Geneva"],
+  "Luzern": ["Lucerne"],
+  "Bern": ["Berne"],
+  "Basel SBB": ["Basle"],
+  "Den Haag Centraal": ["The Hague Central", "The Hague"],
+  "'s-Hertogenbosch": ["Den Bosch"],
+  "Milano Centrale": ["Milan Central", "Milan"]
+}

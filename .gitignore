@@ -1,0 +1,6 @@
+# Big local files (never in git; packs are published as Release assets)
+/raw/
+/work/
+/out/
+__pycache__/
+*.pyc
