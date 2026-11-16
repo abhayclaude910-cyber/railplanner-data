@@ -541,6 +541,10 @@ def main():
     for d in (OUT, WORK):
         os.makedirs(d, exist_ok=True)
     cfgs = load_feeds()
+    missing = [c["id"] for c in cfgs if not os.path.exists(os.path.join(RAW, c["id"] + ".zip"))]
+    if missing:
+        log("skipping feeds with no download: " + ", ".join(missing))
+    cfgs = [c for c in cfgs if c["id"] not in missing]
     pack_countries = sorted({c["country"] for c in cfgs})
     feeds = [FeedData(c, day0) for c in cfgs]
     warnings = []

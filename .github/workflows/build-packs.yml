@@ -27,6 +27,15 @@ jobs:
       - name: Check SQLite has FTS5
         run: python -c "import sqlite3; sqlite3.connect(':memory:').execute('create virtual table t using fts5(x)'); print(sqlite3.sqlite_version)"
 
+      # Last run's downloads: unchanged feeds are skipped, and a feed whose server is down
+      # this time is built from the previous copy instead of failing the whole run.
+      - name: Restore previous downloads
+        uses: actions/cache@v4
+        with:
+          path: raw
+          key: raw-${{ github.run_id }}
+          restore-keys: raw-
+
       - name: Download feeds
         run: python pipeline/download.py
 

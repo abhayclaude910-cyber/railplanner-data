@@ -1,6 +1,7 @@
 """Safety check before publishing: refuses (exit 1) when the new build looks broken.
 
-- every pack and the index exist, are at least MIN_BYTES, and their sha256 matches the manifest
+- every pack and the index exist, are not empty (MIN_BYTES; small countries like ME are ~10 KB), and their sha256 matches the manifest
+- every country of the published Release is still there
 - no pack shrank below SHRINK_LIMIT of the same pack in the currently published Release
   (catches a feed that came back empty or half-downloaded)
 
@@ -14,7 +15,8 @@ import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(os.path.dirname(HERE), "out")
-MIN_BYTES = 300_000
+MIN_BYTES = 2_000
+MIN_INDEX_BYTES = 300_000
 SHRINK_LIMIT = 0.6
 LATEST = "https://github.com/{repo}/releases/latest/download/manifest.json"
 
@@ -37,7 +39,7 @@ def main():
             problems.append(f"{item['file']} missing")
             continue
         size = os.path.getsize(path)
-        if size < MIN_BYTES:
+        if size < (MIN_INDEX_BYTES if item is m["index"] else MIN_BYTES):
             problems.append(f"{item['file']} only {size} bytes")
         if sha256(path) != item["sha256"]:
             problems.append(f"{item['file']} sha256 does not match the manifest")
@@ -49,6 +51,9 @@ def main():
             with urllib.request.urlopen(req, timeout=20) as res:
                 old = json.load(res)
             old_sizes = {p["name"]: p["size"] for p in old.get("packs", [])}
+            gone = sorted(set(old_sizes) - {p["name"] for p in m["packs"]})
+            if gone:
+                problems.append("countries missing from this build: " + ", ".join(gone))
             for p in m["packs"]:
                 prev = old_sizes.get(p["name"])
                 if prev and p["size"] < prev * SHRINK_LIMIT:
