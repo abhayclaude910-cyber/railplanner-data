@@ -52,7 +52,87 @@
       "licence": "CC0",
       "credit": "Timetable data: OVapi / openOV",
       "source_page": "http://gtfs.ovapi.nl/",
+      "name_priority": 2,
+      "live": true
+    },
+    {
+      "id": "fr",
+      "country": "FR",
+      "name": "SNCF TGV, Intercités and TER (France)",
+      "url": "https://www.data.gouv.fr/api/1/datasets/r/9ae758ec-cd7a-40cd-a890-bb3963224942",
+      "licence": "ODbL",
+      "credit": "Source: SNCF Voyageurs, via transport.data.gouv.fr (ODbL)",
+      "source_page": "https://transport.data.gouv.fr/datasets/horaires-sncf",
+      "name_priority": 2,
+      "code_route_label": "SNCF"
+    },
+    {
+      "id": "es",
+      "country": "ES",
+      "name": "Renfe high-speed, long and medium distance (Spain)",
+      "url": "https://ssl.renfe.com/gtransit/Fichero_AV_LD/google_transit.zip",
+      "licence": "CC BY 4.0",
+      "credit": "Source: Renfe Data (CC BY 4.0)",
+      "source_page": "https://data.renfe.com/dataset/horarios-de-alta-velocidad-larga-distancia-y-media-distancia",
       "name_priority": 2
+    },
+    {
+      "id": "fi",
+      "country": "FI",
+      "name": "Digitraffic passenger trains (Finland)",
+      "url": "https://rata.digitraffic.fi/api/v1/trains/gtfs-passenger.zip",
+      "licence": "CC BY 4.0",
+      "credit": "Source: Fintraffic / Digitraffic, licence CC 4.0 BY",
+      "source_page": "https://www.digitraffic.fi/en/railway-traffic/",
+      "name_priority": 2,
+      "headers": {
+        "Accept-Encoding": "gzip",
+        "Digitraffic-User": "railplanner-data/0.1"
+      }
+    },
+    {
+      "id": "no-vyg",
+      "country": "NO",
+      "name": "Entur: Vy (Norway)",
+      "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_vyg-aggregated-gtfs.zip",
+      "licence": "NLOD",
+      "credit": "Source: Entur (NLOD)",
+      "source_page": "https://developer.entur.org/stops-and-timetable-data",
+      "name_priority": 2,
+      "id_space": "entur"
+    },
+    {
+      "id": "no-goa",
+      "country": "NO",
+      "name": "Entur: Go-Ahead Nordic (Norway)",
+      "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_goa-aggregated-gtfs.zip",
+      "licence": "NLOD",
+      "credit": "Source: Entur (NLOD)",
+      "source_page": "https://developer.entur.org/stops-and-timetable-data",
+      "name_priority": 2,
+      "id_space": "entur"
+    },
+    {
+      "id": "no-sjn",
+      "country": "NO",
+      "name": "Entur: SJ Norge (Norway)",
+      "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_sjn-aggregated-gtfs.zip",
+      "licence": "NLOD",
+      "credit": "Source: Entur (NLOD)",
+      "source_page": "https://developer.entur.org/stops-and-timetable-data",
+      "name_priority": 2,
+      "id_space": "entur"
+    },
+    {
+      "id": "no-flt",
+      "country": "NO",
+      "name": "Entur: Flytoget (Norway)",
+      "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_flt-aggregated-gtfs.zip",
+      "licence": "NLOD",
+      "credit": "Source: Entur (NLOD)",
+      "source_page": "https://developer.entur.org/stops-and-timetable-data",
+      "name_priority": 2,
+      "id_space": "entur"
     }
   ]
 }

@@ -33,8 +33,9 @@ The app downloads `manifest.json`, compares `version` and `sha256`, downloads ch
 | `routes` | id, kind (0 rail, 1 ferry, 2 coach), type (GTFS route_type), short ("ICE", "IC", "S10"), long, agency, color, pass (0 normal, 1 rail passes usually not valid e.g. FlixTrain, 2 pass discount only e.g. mountain railways; from `pipeline/pass_rules.json`, show as a hint only) |
 | `patterns` | id, stops: varint list of station ids |
 | `services` | id, days: bitmask, bit *i* (byte i>>3, bit i&7) = runs on day0 + i |
-| `trips` | id, route, pattern, service, start (first departure, seconds after service-day midnight, can be > 86400), times, number (train number), headsign (NULL = last stop's name), platforms (`"\|"`-joined per stop, NULL if none), flags (1 byte per stop: bit0 no boarding, bit1 no alighting; NULL if none), bikes (0 unknown, 1 yes, 2 no), src (space-separated `feed:trip id` for live-data matching) |
+| `trips` | id, route, pattern, service, start (first departure, seconds after service-day midnight, can be > 86400), times, number (train number), headsign (NULL = last stop's name), platforms (`"\|"`-joined per stop, NULL if none), flags (1 byte per stop: bit0 no boarding, bit1 no alighting; NULL if none), bikes (0 unknown, 1 yes, 2 no), src (space-separated live-data keys: `feed:trip_id` = the feed's static GTFS trip id, as used by GTFS-RT trip updates; `feed~rt:id` = the feed's own realtime id when it has one, e.g. Dutch `IFF:IC:2835`) |
 | `station_trips` | station, trip, pos: which trips stop at a station, for departure boards |
+| `source_stops` | feed, stop_id, station: the feed's own stop ids (platform level) mapped to our stations, only for feeds with live data. Live updates name stops by these ids, and also list stations a train passes without stopping |
 
 **`times`** is a varint list. For stop 0: dwell (dep − arr, usually 0). For each next stop *n*: travel (arr*n* − dep*n−1*), then dwell (dep*n* − arr*n*). Absolute times come from `start` plus the running sum.
 

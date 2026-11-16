@@ -32,7 +32,7 @@ def download(feed):
         with open(info_path, encoding="utf-8") as f:
             old = json.load(f)
 
-    req = urllib.request.Request(feed["url"], headers={"User-Agent": UA})
+    req = urllib.request.Request(feed["url"], headers={"User-Agent": UA, **feed.get("headers", {})})
     with urllib.request.urlopen(req, timeout=60) as res:
         size = int(res.headers.get("Content-Length") or 0)
         modified = res.headers.get("Last-Modified") or ""
@@ -43,6 +43,10 @@ def download(feed):
         got = 0
         start = time.time()
         last = 0.0
+        if (res.headers.get("Content-Encoding") or "").lower() == "gzip":
+            import gzip as _gz
+            res = _gz.GzipFile(fileobj=res)
+            size = 0  # length is of the compressed body
         with open(tmp, "wb") as out:
             while True:
                 chunk = res.read(1 << 20)

@@ -28,9 +28,9 @@ UA = "railplanner-data-pipeline/0.1 (+https://github.com/abhayclaude910-cyber/ra
 SWISS_NEXT = "https://data.opentransportdata.swiss/dataset/timetable-{year}-gtfs2020/permalink"
 
 
-def head(url):
+def head(url, extra=None):
     """(size, last_modified) from the server, or None when unreachable. Uses a 1-byte GET (some hosts reject HEAD)."""
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Range": "bytes=0-0"})
+    req = urllib.request.Request(url, headers={"User-Agent": UA, "Range": "bytes=0-0", **(extra or {})})
     try:
         with urllib.request.urlopen(req, timeout=8) as res:
             cr = res.headers.get("Content-Range") or ""
@@ -67,7 +67,7 @@ def network_findings():
         if os.path.exists(info_path):
             with open(info_path, encoding="utf-8") as f:
                 old = json.load(f)
-        now = head(feed["url"])
+        now = head(feed["url"], feed.get("headers"))
         if now is None:
             continue
         size, modified = now

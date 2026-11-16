@@ -33,7 +33,8 @@ def find(text, limit=8):
     q = " ".join(f'"{w}"*' for w in text.replace('"', "").split())
     rows = db.execute(
         "SELECT s.id, s.name, s.country, s.rank, s.packs, s.alt FROM stations_fts f JOIN stations s ON s.id=f.rowid "
-        "WHERE stations_fts MATCH ? ORDER BY s.rank DESC LIMIT ?", (q, limit)).fetchall()
+        "WHERE stations_fts MATCH ? ORDER BY (lower(s.name) = lower(?)) DESC, s.rank DESC LIMIT ?",
+        (q, text.strip(), limit)).fetchall()
     return rows
 
 
@@ -81,9 +82,10 @@ def route(origin, dest, day, start, packs):
                 pl = plats.split("|") if plats else [""] * len(stops)
                 trips[(tid, offset)] = (rid, number, head, stops, pl)
                 for n in range(len(stops) - 1):
-                    if fl[n] & 1 or fl[n + 1] & 2:
-                        continue
-                    conns.append((dep[n] + base, arr[n + 1] + base, stops[n], stops[n + 1], (tid, offset), n))
+                    # Keep every hop (the train passes through stops where you may not get on or off);
+                    # boarding / alighting rules are checked in the scan.
+                    conns.append((dep[n] + base, arr[n + 1] + base, stops[n], stops[n + 1], (tid, offset), n,
+                                  not fl[n] & 1, not fl[n + 1] & 2))
     conns.sort()
 
     # Connection Scan: earliest arrival with per-station minimum transfer time.
@@ -91,15 +93,15 @@ def route(origin, dest, day, start, packs):
     best = {origin: start}
     trip_in = {}      # trip -> connection index where we boarded
     via = {}          # station -> (board conn, alight conn)
-    for ci, (d, a, s1, s2, trip, n) in enumerate(conns):
+    for ci, (d, a, s1, s2, trip, n, can_board, can_alight) in enumerate(conns):
         if d < start:
             continue
         if best.get(dest, INF) <= d:
             break
-        if trip in trip_in or (best.get(s1, INF) + (0 if s1 == origin else stations[s1][1])) <= d:
+        if trip in trip_in or (can_board and (best.get(s1, INF) + (0 if s1 == origin else stations[s1][1])) <= d):
             if trip not in trip_in:
                 trip_in[trip] = ci
-            if a < best.get(s2, INF):
+            if can_alight and a < best.get(s2, INF):
                 best[s2] = a
                 via[s2] = (trip_in[trip], ci)
     if dest not in via:

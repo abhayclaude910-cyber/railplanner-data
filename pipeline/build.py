@@ -54,6 +54,8 @@ UIC_COUNTRY = {
 # Rough boxes (lat1, lon1, lat2, lon2) used only to spot stations that are clearly abroad.
 BOX = {
     "DE": (47.2, 5.8, 55.1, 15.1), "CH": (45.8, 5.9, 47.85, 10.5), "NL": (50.7, 3.3, 53.6, 7.25),
+    "FR": (41.3, -5.2, 51.1, 9.6), "ES": (35.9, -9.4, 43.8, 4.4), "FI": (59.7, 20.5, 70.1, 31.6),
+    "NO": (57.9, 4.5, 71.2, 31.1),
 }
 
 
@@ -93,9 +95,15 @@ class FeedData:
             if not kind:
                 continue
             color = (r.get("route_color") or "").strip()
+            short = (r.get("route_short_name") or "").strip()
+            # Internal line codes ("601A" in the SNCF feed) mean nothing to travellers.
+            agency_name = agencies.get(r.get("agency_id", ""), "")
+            if re.fullmatch(r"\d{3}[A-Z]", short) and (
+                    cfg.get("code_route_label") or re.search(r"SNCF|Chemins de fer Fran", agency_name)):
+                short = cfg.get("code_route_label") or "SNCF"
             self.routes[r["route_id"]] = {
                 "kind": kind, "type": rt,
-                "short": (r.get("route_short_name") or "").strip(),
+                "short": short,
                 "long": (r.get("route_long_name") or "").strip(),
                 "agency": agencies.get(r.get("agency_id", ""), next(iter(agencies.values()), "")),
                 "color": int(color, 16) if re.fullmatch(r"[0-9A-Fa-f]{6}", color) else None,
@@ -107,10 +115,14 @@ class FeedData:
         for r in feed.rows("trips.txt"):
             if r["route_id"] not in self.routes:
                 continue
+            headsign = (r.get("trip_headsign") or "").strip()
+            number = (r.get("trip_short_name") or "").strip()
+            if not number and headsign.isdigit():  # SNCF puts the train number in the headsign
+                number, headsign = headsign, ""
             self.trips[r["trip_id"]] = {
                 "route": r["route_id"], "service": r["service_id"],
-                "headsign": (r.get("trip_headsign") or "").strip(),
-                "number": (r.get("trip_short_name") or "").strip(),
+                "headsign": headsign,
+                "number": number,
                 "bikes": (r.get("bikes_allowed") or "").strip(),
                 "rt": (r.get("realtime_trip_id") or r.get("original_trip_id") or "").strip(),
             }
@@ -375,7 +387,8 @@ def country_by_box(lat, lon):
 
 ROUGH_BOX = {
     "DE": (47.2, 5.8, 55.1, 15.1), "CH": (45.8, 5.9, 47.85, 10.5), "NL": (50.7, 3.3, 53.6, 7.25),
-    "SE": (55.3, 10.9, 69.1, 24.2), "GB": (49.9, -8.2, 58.7, 1.8), "NO": (57.9, 4.5, 71.2, 31.1),
+    "SE": (55.3, 10.9, 69.1, 24.2), "GB": (49.9, -8.2, 58.7, 1.8), "ES": (35.9, -9.4, 43.8, 4.4),
+    "FI": (59.7, 20.5, 70.1, 31.6), "RU": (54.0, 28.0, 70.0, 60.0), "NO": (57.9, 4.5, 71.2, 31.1),
     "AT": (46.4, 9.5, 49.0, 17.2), "CZ": (48.55, 12.1, 51.06, 18.9), "BE": (49.5, 2.5, 51.5, 6.4),
     "LU": (49.45, 5.73, 50.18, 6.53), "FR": (42.3, -4.8, 51.1, 8.2), "PL": (49.0, 14.1, 54.9, 24.2),
     "DK": (54.55, 8.0, 57.8, 15.2), "IT": (36.6, 6.6, 47.1, 18.5), "SK": (47.7, 16.8, 49.6, 22.6),
@@ -542,7 +555,7 @@ def main():
                     dep_count[s[0]] += days
                     feed_dep[s[0]][fd.country] = feed_dep[s[0]].get(fd.country, 0) + days
             trips.append({
-                "feed": fd, "src": [f"{fd.id}:{t['rt'] or tid.split('#')[0]}"], "route": route_gid[rk], "stops": seq,
+                "feed": fd, "src": [f"{fd.id}:{tid.split('#')[0]}"] + ([f"{fd.id}~rt:{t['rt']}"] if t['rt'] else []), "route": route_gid[rk], "stops": seq,
                 "mask": mask, "number": t["number"], "headsign": t["headsign"], "bikes": t["bikes"],
             })
     log(f"trips: {len(trips)} with service in the next {NDAYS} days ({bad_trips} dropped for broken stations)")
@@ -617,12 +630,21 @@ def main():
                 "url": c["source_page"]} for c in cfgs]
     credits.append({"feed": "osm", "name": "OpenStreetMap", "licence": "ODbL",
                     "credit": "© OpenStreetMap contributors (used by gtfs.de)", "url": "https://www.openstreetmap.org/copyright"})
+    # feed stop id -> station, for feeds with live data ("live": true in feeds.json)
+    source_stops = []
+    for fd in feeds:
+        if not fd.cfg.get("live"):
+            continue
+        for si, sid in enumerate(fd.stop_ids):
+            key, _ = fd.stop_station[si]
+            source_stops.append((fd.id, sid, node_gid[node_of[(fd.space, key)]]))
+    log(f"live stop ids: {len(source_stops)}")
     files = []
     for cc in pack_countries:
         mine = [t for t in trips if any(stations[s[0]]["country"] == cc for s in t["stops"])
                 or (t["feed"].country == cc and not any(stations[s[0]]["country"] in pack_countries for s in t["stops"]))]
         path = os.path.join(WORK, f"{cc.lower()}.sqlite")
-        write_pack(path, cc, version, day0, mine, routes, stations, credits)
+        write_pack(path, cc, version, day0, mine, routes, stations, credits, source_stops)
         files.append(publish(path, cc, len(mine)))
         log(f"pack {cc}: {len(mine)} trips, {files[-1]['size'] / 1e6:.1f} MB compressed")
 
@@ -720,10 +742,11 @@ CREATE TABLE trips(id INTEGER PRIMARY KEY, route INTEGER, pattern INTEGER, servi
                    times BLOB, number TEXT, headsign TEXT, platforms TEXT, flags BLOB, bikes INTEGER, src TEXT);
 CREATE TABLE station_trips(station INTEGER, trip INTEGER, pos INTEGER, PRIMARY KEY(station, trip, pos))
   WITHOUT ROWID;
+CREATE TABLE source_stops(feed TEXT, stop_id TEXT, station INTEGER, PRIMARY KEY(feed, stop_id)) WITHOUT ROWID;
 """
 
 
-def write_pack(path, cc, version, day0, trips, routes, stations, credits):
+def write_pack(path, cc, version, day0, trips, routes, stations, credits, source_stops=()):
     if os.path.exists(path):
         os.remove(path)
     db = sqlite3.connect(path)
@@ -769,6 +792,9 @@ def write_pack(path, cc, version, day0, trips, routes, stations, credits):
         for pos, x in enumerate(t["stops"]):
             st_rows.append((x[0], t["gid"], pos))
     db.executemany("INSERT OR IGNORE INTO station_trips VALUES(?,?,?)", st_rows)
+    # Live feeds name stops by their own ids: map them to our stations (only stations in this pack).
+    db.executemany("INSERT OR IGNORE INTO source_stops VALUES(?,?,?)",
+                   [r for r in source_stops if r[2] in used_st])
     db.commit()
     db.execute("VACUUM")
     db.close()
