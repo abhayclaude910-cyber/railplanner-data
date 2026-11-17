@@ -171,9 +171,14 @@ class FeedData:
             # one route per line and type, named after the type, so the label reads "RJX 19962".
             m = cfg.get("type_in_number") and re.fullmatch(r"([^\W\d_]{1,12})\s*(\d+)", number)
             if m:
-                typed = f"{r['route_id']}|{m.group(1)}"
+                # "type_names" (feeds.json) gives readable names ("xpress" -> "RJX"); null = not a train (bus)
+                names = cfg.get("type_names", {})
+                kind = names.get(m.group(1), m.group(1)) if m.group(1) in names else m.group(1)
+                if kind is None:
+                    continue
+                typed = f"{r['route_id']}|{kind}"
                 if typed not in self.routes:
-                    self.routes[typed] = dict(self.routes[r["route_id"]], short=m.group(1))
+                    self.routes[typed] = dict(self.routes[r["route_id"]], short=kind)
                 r = dict(r, route_id=typed)
                 number = m.group(2)
             self.trips[r["trip_id"]] = {

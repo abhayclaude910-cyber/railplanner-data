@@ -446,7 +446,21 @@
       "credit": "Source: MÁV-START, converted by jbb.ghsq.de",
       "source_page": "https://www.mavcsoport.hu/",
       "name_priority": 2,
-      "type_in_number": true
+      "type_in_number": true,
+      "type_names": {
+        "xpress": "RJX",
+        "railjet": "RJ",
+        "InterCity": "IC",
+        "gyorsvonat": "Fast",
+        "Expresszvonat": "Express",
+        "SV": "Fast",
+        "SZ": "Regional",
+        "EuroRegio": "ER",
+        "EuroNight": "EN",
+        "különvonat": "Special",
+        "autóbusz": null,
+        "busz": null
+      }
     },
     {
       "id": "hu-gysev",
@@ -458,7 +472,21 @@
       "credit": "Source: GYSEV, converted by jbb.ghsq.de",
       "source_page": "https://www.gysev.hu/",
       "name_priority": 2,
-      "type_in_number": true
+      "type_in_number": true,
+      "type_names": {
+        "xpress": "RJX",
+        "railjet": "RJ",
+        "InterCity": "IC",
+        "gyorsvonat": "Fast",
+        "Expresszvonat": "Express",
+        "SV": "Fast",
+        "SZ": "Regional",
+        "EuroRegio": "ER",
+        "EuroNight": "EN",
+        "különvonat": "Special",
+        "autóbusz": null,
+        "busz": null
+      }
     }
   ]
 }
