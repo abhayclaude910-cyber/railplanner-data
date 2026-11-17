@@ -63,7 +63,7 @@ BOX = {
     "AT": (46.3, 9.4, 49.1, 17.3), "SK": (47.7, 16.8, 49.65, 22.6), "DK": (54.5, 8.0, 57.8, 15.2),
     "CZ": (48.5, 12.0, 51.1, 18.9), "SI": (45.4, 13.3, 46.9, 16.65), "LT": (53.8, 20.9, 56.5, 26.9),
     "GR": (34.8, 19.3, 41.8, 29.7), "RS": (42.2, 18.8, 46.2, 23.1), "TR": (35.8, 25.6, 42.2, 44.9),
-    "MK": (40.8, 20.4, 42.4, 23.1), "SE": (55.3, 10.9, 69.1, 24.2),
+    "MK": (40.8, 20.4, 42.4, 23.1), "SE": (55.3, 10.9, 69.1, 24.2), "HU": (45.7, 16.1, 48.6, 22.9),
 }
 
 
@@ -169,7 +169,7 @@ class FeedData:
                 number, headsign = headsign, ""
             # Line code as route name and the train type in the number ("A3" + "RJX 19962", "R19" + "R 865"):
             # one route per line and type, named after the type, so the label reads "RJX 19962".
-            m = cfg.get("type_in_number") and re.fullmatch(r"([A-Za-z]{1,4})\s*(\d+)", number)
+            m = cfg.get("type_in_number") and re.fullmatch(r"([^\W\d_]{1,12})\s*(\d+)", number)
             if m:
                 typed = f"{r['route_id']}|{m.group(1)}"
                 if typed not in self.routes:

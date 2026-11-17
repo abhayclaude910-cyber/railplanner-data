@@ -435,6 +435,30 @@
       "source_page": "https://www.data.gouv.fr/datasets/eurostar-gtfs",
       "name_priority": 1,
       "route_label": "Eurostar"
+    },
+    {
+      "id": "hu-mav",
+      "country": "HU",
+      "name": "MÁV-START (Hungary)",
+      "url": "https://jbb.ghsq.de/gtfs/hu-m%C3%A1v_szem%C3%A9lysz%C3%A1ll%C3%ADt%C3%A1si_zrt..gtfs.zip",
+      "id_space": "hu",
+      "licence": "not stated (community conversion)",
+      "credit": "Source: MÁV-START, converted by jbb.ghsq.de",
+      "source_page": "https://www.mavcsoport.hu/",
+      "name_priority": 2,
+      "type_in_number": true
+    },
+    {
+      "id": "hu-gysev",
+      "country": "HU",
+      "name": "GYSEV (Hungary / Austria)",
+      "url": "https://jbb.ghsq.de/gtfs/hu-gysev_zrt..gtfs.zip",
+      "id_space": "hu",
+      "licence": "not stated (community conversion)",
+      "credit": "Source: GYSEV, converted by jbb.ghsq.de",
+      "source_page": "https://www.gysev.hu/",
+      "name_priority": 2,
+      "type_in_number": true
     }
   ]
 }
