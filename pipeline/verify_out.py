@@ -2,7 +2,7 @@
 
 - every pack and the index exist, are not empty (MIN_BYTES; small countries like ME are ~10 KB), and their sha256 matches the manifest
 - every country of the published Release is still there
-- no pack shrank below SHRINK_LIMIT of the same pack in the currently published Release
+- no pack's train-days in the next 60 days fell below SHRINK_LIMIT of the published Release
   (catches a feed that came back empty or half-downloaded)
 
     python pipeline/verify_out.py
@@ -54,10 +54,16 @@ def main():
             gone = sorted(set(old_sizes) - {p["name"] for p in m["packs"]})
             if gone:
                 problems.append("countries missing from this build: " + ", ".join(gone))
+            old_days = {p["name"]: p.get("train_days_60") for p in old.get("packs", [])}
             for p in m["packs"]:
-                prev = old_sizes.get(p["name"])
-                if prev and p["size"] < prev * SHRINK_LIMIT:
-                    problems.append(f"{p['file']} shrank from {prev / 1e6:.1f} MB to {p['size'] / 1e6:.1f} MB")
+                prev, now = old_days.get(p["name"]), p.get("train_days_60")
+                if prev and now is not None:
+                    if now < prev * SHRINK_LIMIT:
+                        problems.append(f"{p['file']}: trains in the next 60 days fell from {prev} to {now}")
+                elif p["name"] in old_sizes and prev is None:
+                    # The published Release predates train-day counts: nothing comparable this once
+                    # (file sizes changed when repeated trains were combined).
+                    print(f"note: {p['file']}: no train-day count in the published Release, size not compared")
         except Exception as e:  # first Release, or GitHub unreachable: size checks above still apply
             print(f"note: no previous Release to compare with ({e})")
 

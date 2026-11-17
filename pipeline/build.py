@@ -844,6 +844,10 @@ def main():
         path = os.path.join(WORK, f"{cc.lower()}.sqlite")
         write_pack(path, cc, version, day0, mine, routes, stations, credits, source_stops)
         files.append(publish(path, cc, len(mine)))
+        # Train-days in the next 60 days: the safety check compares this between builds (file size and trip
+        # count change when the same train's date ranges are combined; train-days do not).
+        window = (1 << 60) - 1
+        files[-1]["train_days_60"] = sum(bin(int.from_bytes(t["mask"], "little") & window).count("1") for t in mine)
         log(f"pack {cc}: {len(mine)} trips, {files[-1]['size'] / 1e6:.1f} MB compressed")
 
     idx = os.path.join(WORK, "stations_index.sqlite")
