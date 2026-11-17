@@ -37,6 +37,16 @@ def resolve_url(feed):
         zips = [x for x in res if x["url"].lower().endswith(".zip")]
         newest = max(zips, key=lambda x: x.get("last_modified") or "")
         return newest["url"]
+    ds = feed.get("data_slovensko_dataset")
+    if ds:  # Slovak open data portal: newest file of the dataset
+        body = json.dumps({"language": "sk", "page": 1, "pageSize": 1, "filters": {"id": [ds]},
+                           "requiredFacets": []}).encode()
+        req = urllib.request.Request("https://data.slovensko.sk/datasets/search", data=body,
+                                     headers={"User-Agent": UA, "Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.load(r)["items"][0]["distributions"][0]["downloadUrl"]
+    if "url_year" in feed:  # one file per timetable year ("..._2026.zip"); +1 = next year's, once published
+        return feed["url"].replace("{year}", str(time.gmtime().tm_year + feed["url_year"]))
     return feed["url"]
 
 
@@ -110,7 +120,11 @@ def main():
     for feed in load_feeds():
         if wanted and feed["id"] not in wanted:
             continue
-        if not download_retry(feed):
+        if not download_retry(feed, tries=1 if feed.get("optional") else 3):
+            if feed.get("optional"):
+                print(f"{feed['id']}: not published (yet), skipped")
+                errors.pop(feed["id"], None)
+                continue
             if os.path.exists(os.path.join(RAW, feed["id"] + ".zip")):
                 kept.append(feed["id"])
             else:

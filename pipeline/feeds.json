@@ -270,6 +270,130 @@
         ]
       },
       "trip_route_pattern": "^(?:(?P<agency>[A-Z]+)-)?(?P<type>[A-Z]+)(?:_\\d+)?$"
+    },
+    {
+      "id": "at",
+      "country": "AT",
+      "name": "ÖBB timetable (Austria)",
+      "url": "https://static.web.oebb.at/open-data/soll-fahrplan-gtfs/GTFS_Fahrplan_{year}.zip",
+      "url_year": 0,
+      "licence": "CC BY 4.0",
+      "credit": "Source: ÖBB-Personenverkehr AG, data.oebb.at (CC BY 4.0)",
+      "source_page": "https://data.oebb.at/de/datensaetze~soll-fahrplan-gtfs~",
+      "id_space": "at",
+      "name_priority": 2,
+      "type_in_number": true
+    },
+    {
+      "id": "at-next",
+      "country": "AT",
+      "name": "ÖBB timetable, next year (Austria)",
+      "url": "https://static.web.oebb.at/open-data/soll-fahrplan-gtfs/GTFS_Fahrplan_{year}.zip",
+      "url_year": 1,
+      "optional": true,
+      "licence": "CC BY 4.0",
+      "credit": "Source: ÖBB-Personenverkehr AG, data.oebb.at (CC BY 4.0)",
+      "source_page": "https://data.oebb.at/de/datensaetze~soll-fahrplan-gtfs~",
+      "id_space": "at",
+      "name_priority": 2,
+      "type_in_number": true
+    },
+    {
+      "id": "sk",
+      "country": "SK",
+      "name": "ŽSR train timetable (Slovakia)",
+      "url": "https://data.slovensko.sk/datasety/ebeeedf1-aca2-451a-bdc0-35d536714888",
+      "data_slovensko_dataset": "ebeeedf1-aca2-451a-bdc0-35d536714888",
+      "licence": "CC BY 1.0",
+      "credit": "Source: Železnice Slovenskej republiky, data.slovensko.sk (CC BY)",
+      "source_page": "https://data.slovensko.sk/",
+      "name_priority": 2,
+      "dup_priority": 0,
+      "type_in_number": true
+    },
+    {
+      "id": "dk",
+      "country": "DK",
+      "name": "Rejseplanen (Denmark)",
+      "url": "https://www.rejseplanen.info/labs/GTFS.zip",
+      "licence": "CC BY 4.0",
+      "credit": "Source: Rejsekort & Rejseplan A/S (Rejseplanen Labs)",
+      "source_page": "https://labs.rejseplanen.dk/",
+      "name_priority": 2
+    },
+    {
+      "id": "cz",
+      "country": "CZ",
+      "name": "Czech national train timetable (CZPTT)",
+      "url": "https://motis.obehy.cz/get-feeds/cz-czptt-gtfs.zip",
+      "licence": "CC0 (as published by the converter)",
+      "credit": "Source: Správa železnic timetable data, GTFS by motis.obehy.cz",
+      "source_page": "https://motis.obehy.cz/",
+      "name_priority": 2,
+      "type_in_number": true
+    },
+    {
+      "id": "si",
+      "country": "SI",
+      "name": "Slovenia national timetable (NAP, incl. SŽ trains)",
+      "url": "https://gitlab.com/api/v4/projects/derp-si%2Fgtfs-generators/packages/generic/IJPP/latest/ijpp_intl_gtfs.zip",
+      "licence": "CC BY-SA 4.0",
+      "credit": "Source: DUJPP, Slovenian National Access Point nap.si (CC BY-SA 4.0); copy by derp.si",
+      "source_page": "https://nap.si/",
+      "name_priority": 2,
+      "type_in_number": true
+    },
+    {
+      "id": "lt",
+      "country": "LT",
+      "name": "LTG Link (Lithuania)",
+      "url": "https://jbb.ghsq.de/gtfs/lt-ltglink.gtfs.zip",
+      "licence": "not stated (community conversion)",
+      "credit": "Source: LTG Link, converted by jbb.ghsq.de",
+      "source_page": "https://ltglink.lt/",
+      "name_priority": 2
+    },
+    {
+      "id": "gr",
+      "country": "GR",
+      "name": "Hellenic Train (Greece)",
+      "url": "https://jbb.ghsq.de/gtfs/gr-hellenic-train.gtfs.zip",
+      "licence": "not stated (community conversion)",
+      "credit": "Source: Hellenic Train, converted by jbb.ghsq.de",
+      "source_page": "https://www.hellenictrain.gr/",
+      "name_priority": 2
+    },
+    {
+      "id": "rs",
+      "country": "RS",
+      "name": "Srbijavoz (Serbia)",
+      "url": "https://gitlab.com/api/v4/projects/vekejsn%2Fgtfs-generators/packages/generic/srbijavoz-merged-gtfs/latest/srbijavoz_merged.zip",
+      "licence": "not stated (community conversion)",
+      "credit": "Source: Srbijavoz, GTFS by vekejsn/gtfs-generators",
+      "source_page": "https://srbvoz.rs/",
+      "name_priority": 2
+    },
+    {
+      "id": "tr",
+      "country": "TR",
+      "name": "TCDD Taşımacılık (Türkiye)",
+      "url": "https://github.com/yasinkaraaslan/tcdd-gtfs/raw/main/output/tcdd.zip",
+      "licence": "MIT (converter); source data not stated",
+      "credit": "Source: TCDD Taşımacılık, GTFS by yasinkaraaslan/tcdd-gtfs",
+      "source_page": "https://ebilet.tcddtasimacilik.gov.tr/",
+      "name_priority": 2,
+      "caps_names": "tr",
+      "default_label": "TCDD"
+    },
+    {
+      "id": "mk",
+      "country": "MK",
+      "name": "North Macedonia Railways",
+      "url": "https://github.com/deryclem/gtfs-north-macedonia/raw/main/gtfs-north-macedonia.zip",
+      "licence": "not stated (community conversion)",
+      "credit": "Source: Македонски Железници Транспорт, GTFS by deryclem",
+      "source_page": "https://mztransport.com.mk/",
+      "name_priority": 2
     }
   ]
 }

@@ -35,14 +35,24 @@ python pipeline/query.py route "Muenchen Hbf" "Amsterdam Centraal" 2026-11-20 08
 | ZPCG (Montenegro) | ODbL | Source: ZPCG, converted by jbb.ghsq.de |
 | PKP Intercity + Polish regional trains | CC BY 4.0 | Source: Polish operators, GTFS by gtfs.kasznia.net |
 | BDŽ (Bulgaria) | CC BY 4.0 | Source: BDŽ, GTFS by livetransport.eu |
+| ÖBB timetable (Austria), yearly file from data.oebb.at | CC BY 4.0 | Source: ÖBB-Personenverkehr AG |
+| ŽSR train timetable (Slovakia), newest file from data.slovensko.sk | CC BY 1.0 | Source: Železnice Slovenskej republiky |
+| Rejseplanen Labs GTFS (Denmark), trains and ferries only | CC BY 4.0 | Source: Rejsekort & Rejseplan A/S |
+| CZPTT national train timetable (Czechia) | CC0 as published by the converter | Source: Správa železnic, GTFS by motis.obehy.cz |
+| Slovenian national access point (incl. SŽ trains) | CC BY-SA 4.0: the Slovenia pack is shared under the same licence | Source: DUJPP / nap.si, copy by derp.si |
+| LTG Link (Lithuania) | Not stated (community conversion) | Source: LTG Link, converted by jbb.ghsq.de |
+| Hellenic Train + ferries (Greece) | Not stated (community conversion) | Source: Hellenic Train, converted by jbb.ghsq.de |
+| Srbijavoz (Serbia) | Not stated (community conversion) | Source: Srbijavoz, GTFS by vekejsn/gtfs-generators |
+| TCDD Taşımacılık main lines (Türkiye) | MIT (converter); source data not stated | Source: TCDD, GTFS by yasinkaraaslan/tcdd-gtfs |
+| North Macedonia Railways | Not stated (community conversion) | Source: MŽ Transport, GTFS by deryclem |
 
 Live data used by the app (not stored here): OVapi train updates (Netherlands, CC0).
 
 **Not included yet** (of the 33 Interrail countries):
-- Licence unknown, held back: Lithuania, Greece, North Macedonia, Türkiye, Bosnia and Herzegovina (community-converted files without a stated licence).
-- Need a free account or key (keys go into GitHub Actions secrets, never the app): Austria, Hungary, Slovenia, Sweden, Denmark, Great Britain.
-- Current file not found: Croatia (the official link serves the 2024-25 timetable), Serbia (link broken).
-- No open national rail timetable found: Czechia, Slovakia, Italy (only an unofficial Trenitalia scraper).
+- Need a free account or key (keys go into GitHub Actions secrets, never the app): Sweden (Trafiklab), Hungary (MÁV registration), Great Britain (National Rail Data Portal; CIF format needs a converter). Austria's non-ÖBB operators need a Mobilitätsverbünde account.
+- Current file not found: Croatia (the official HŽPP link still serves the 2024-25 timetable).
+- No usable open timetable: Italy (only a non-commercial proxy), Bosnia and Herzegovina (no rail feed).
+- Known gaps: Serbia's file lists Petrovaradin but not Novi Sad on Belgrade-Subotica trains; international trains split between two sources (e.g. EC Berlin-Prague: German data ends at Děčín) show as a change at the border.
 - Outside Europe (USA, Canada, Australia, Taiwan): need time-zone support and licence checks.
 
 The packs are changed (filtered to trains, ferries and coaches; stations merged across feeds) and keep each source's licence. Every pack carries these credits in its `meta.credits`.

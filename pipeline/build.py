@@ -41,7 +41,7 @@ MERGE_SIMILAR_NAME_M = 600  # ...or closer than this when the names look alike
 MERGE_SAME_SOURCE_M = 300   # two entries of one source: same station only if this close and alike
 # Stations outside this box have broken coordinates (feeds.json can set "valid_box" per feed,
 # e.g. for Crete or Cyprus later). The Dutch feed puts some ferry stops in Algeria.
-EUROPE_BOX = (35.8, -10.6, 71.5, 40.5)
+EUROPE_BOX = (34.5, -10.6, 71.5, 45.0)
 KIND_CODE = {"rail": 0, "ferry": 1, "coach": 2}
 
 # UIC country codes (first two digits of a 7-digit station number).
@@ -59,6 +59,10 @@ BOX = {
     "LU": (49.4, 5.7, 50.2, 6.6), "PT": (36.9, -9.6, 42.2, -6.1), "EE": (57.5, 21.7, 59.8, 28.3),
     "RO": (43.6, 20.2, 48.3, 29.8), "LV": (55.6, 20.9, 58.1, 28.3), "ME": (41.8, 18.4, 43.6, 20.4),
     "PL": (49.0, 14.1, 54.9, 24.2), "BG": (41.2, 22.3, 44.3, 28.7),
+    "AT": (46.3, 9.4, 49.1, 17.3), "SK": (47.7, 16.8, 49.65, 22.6), "DK": (54.5, 8.0, 57.8, 15.2),
+    "CZ": (48.5, 12.0, 51.1, 18.9), "SI": (45.4, 13.3, 46.9, 16.65), "LT": (53.8, 20.9, 56.5, 26.9),
+    "GR": (34.8, 19.3, 41.8, 29.7), "RS": (42.2, 18.8, 46.2, 23.1), "TR": (35.8, 25.6, 42.2, 44.9),
+    "MK": (40.8, 20.4, 42.4, 23.1),
 }
 
 
@@ -105,6 +109,9 @@ class FeedData:
                     cfg.get("code_route_label") or re.search(r"SNCF|Chemins de fer Fran", agency_name)):
                 short = cfg.get("code_route_label") or "SNCF"
             long_name = (r.get("route_long_name") or "").strip()
+            # Line codes in front of the train type ("A3 RJX", "R19 R", "SI1 D") mean little to travellers.
+            if cfg.get("route_short_strip"):
+                short = re.sub(cfg["route_short_strip"], "", short).strip() or short
             # Train types written in the local alphabet ("БВ") get an English word from feeds.json.
             label = cfg.get("route_labels", {}).get(short)
             if label:
@@ -114,8 +121,8 @@ class FeedData:
                 short = cfg.get("default_label") or (agency_name if 0 < len(agency_name) <= 12 else "")
             self.routes[r["route_id"]] = {
                 "kind": kind, "type": rt,
-                "short": latin_name(short),
-                "long": latin_name(long_name),
+                "short": latin_name(short, cfg["country"]),
+                "long": latin_name(long_name, cfg["country"]),
                 "agency": agencies.get(r.get("agency_id", ""), next(iter(agencies.values()), "")),
                 "color": int(color, 16) if re.fullmatch(r"[0-9A-Fa-f]{6}", color) else None,
             }
@@ -146,11 +153,22 @@ class FeedData:
                 continue
             headsign = (r.get("trip_headsign") or "").strip()
             number = (r.get("trip_short_name") or "").strip()
+            if number.isdigit():
+                number = number.lstrip("0") or number  # "000031" -> "31"
             if not number and headsign.isdigit():  # SNCF puts the train number in the headsign
                 number, headsign = headsign, ""
+            # Line code as route name and the train type in the number ("A3" + "RJX 19962", "R19" + "R 865"):
+            # one route per line and type, named after the type, so the label reads "RJX 19962".
+            m = cfg.get("type_in_number") and re.fullmatch(r"([A-Za-z]{1,4})\s*(\d+)", number)
+            if m:
+                typed = f"{r['route_id']}|{m.group(1)}"
+                if typed not in self.routes:
+                    self.routes[typed] = dict(self.routes[r["route_id"]], short=m.group(1))
+                r = dict(r, route_id=typed)
+                number = m.group(2)
             self.trips[r["trip_id"]] = {
                 "route": r["route_id"], "service": r["service_id"],
-                "headsign": latin_name(headsign),
+                "headsign": latin_name(fix_caps(headsign, cfg), cfg["country"]),
                 "number": number,
                 "bikes": (r.get("bikes_allowed") or "").strip(),
                 "rt": (r.get("realtime_trip_id") or r.get("original_trip_id") or "").strip(),
@@ -173,7 +191,7 @@ class FeedData:
             except (ValueError, KeyError):
                 lat = lon = None
             raw_stops[r["stop_id"]] = (
-                (r.get("stop_name") or "").strip(), lat, lon,
+                fix_caps((r.get("stop_name") or "").strip(), cfg), lat, lon,
                 (r.get("parent_station") or "").strip(), (r.get("platform_code") or "").strip(),
                 (r.get("didok") or "").strip(),
             )
@@ -361,6 +379,7 @@ def fill_times(stops):
 # ---------------------------------------------------------------- station merging
 
 def norm_name(s):
+    s = latinize(s) or s  # Greek / Cyrillic names compare in Latin letters
     s = s.replace("ß", "ss").lower()
     s = unicodedata.normalize("NFKD", s)
     s = "".join(c for c in s if not unicodedata.combining(c))
@@ -439,37 +458,85 @@ CYRILLIC = {
 }
 
 
-def latinize(s):
-    """'София' -> 'Sofiya'. Returns '' when there is no Cyrillic in the name."""
-    if not any("\u0400" <= ch <= "\u04ff" for ch in s):
+# Serbian and Macedonian write Cyrillic in Latin letters differently from Bulgarian.
+CYRILLIC_LANG = {
+    "SR": {"ц": "c", "ч": "č", "ш": "š", "ж": "ž", "ђ": "đ", "ћ": "ć", "џ": "dž", "х": "h", "й": "j"},
+    "MK": {"ц": "c", "ч": "č", "ш": "š", "ж": "ž", "џ": "dž", "х": "h", "ѓ": "gj", "ќ": "kj", "ѕ": "dz"},
+}
+CYRILLIC_LANG["RS"] = CYRILLIC_LANG["ME"] = CYRILLIC_LANG["BA"] = CYRILLIC_LANG["SR"]
+
+GREEK = {
+    "α": "a", "β": "v", "γ": "g", "δ": "d", "ε": "e", "ζ": "z", "η": "i", "θ": "th", "ι": "i", "κ": "k",
+    "λ": "l", "μ": "m", "ν": "n", "ξ": "x", "ο": "o", "π": "p", "ρ": "r", "σ": "s", "ς": "s", "τ": "t",
+    "υ": "y", "φ": "f", "χ": "ch", "ψ": "ps", "ω": "o", "ά": "a", "έ": "e", "ή": "i", "ί": "i", "ό": "o",
+    "ύ": "y", "ώ": "o", "ϊ": "i", "ϋ": "y", "ΐ": "i", "ΰ": "y",
+}
+GREEK_PAIRS = {"ου": "ou", "ού": "ou", "αι": "ai", "αί": "ai", "ει": "ei", "εί": "ei", "οι": "oi", "οί": "oi"}
+
+
+def latinize(s, lang=""):
+    """'София' -> 'Sofiya', 'Нови Сад' (Serbian) -> 'Novi Sad', 'Αθήνα' -> 'Athina'.
+    Returns '' when the name has no Cyrillic or Greek letters."""
+    cyr = any("\u0400" <= ch <= "\u04ff" for ch in s)
+    greek = any("\u0370" <= ch <= "\u03ff" or "\u1f00" <= ch <= "\u1fff" for ch in s)
+    if not cyr and not greek:
         return ""
+    table = {**CYRILLIC, **CYRILLIC_LANG.get(lang.upper(), {}), **GREEK}
     out = []
-    for ch in s:
+    i = 0
+    while i < len(s):
+        pair = s[i:i + 2].lower()
+        if pair in GREEK_PAIRS:
+            t = GREEK_PAIRS[pair]
+            out.append(t.capitalize() if s[i] != s[i].lower() else t)
+            i += 2
+            continue
+        ch = s[i]
         low = ch.lower()
-        t = CYRILLIC.get(low)
+        t = table.get(low)
         if t is None:
             out.append(ch)
         else:
             out.append(t.capitalize() if ch != low and t else t)
+        i += 1
     return "".join(out)
 
 
 # Well-known English forms that plain transliteration does not give.
-LATIN_EXTRA = {"Sofiya": "Sofia"}
+LATIN_EXTRA = {"Sofiya": "Sofia", "Athina": "Athens", "Peiraias": "Piraeus"}
 
 
-def latin_name(s):
-    """Display form of a Cyrillic name: 'София Централна' -> 'Sofia Tsentralna'; other names unchanged."""
-    t = latinize(s)
+def latin_name(s, lang=""):
+    """Display form of a Cyrillic or Greek name: 'София Централна' -> 'Sofia Tsentralna'; others unchanged."""
+    t = latinize(s, lang)
     if not t:
         return s
     return re.sub(r"[^\W\d_]+", lambda m: LATIN_EXTRA.get(m.group(0), m.group(0)), t)
 
 
+def fix_caps(s, cfg):
+    """Names written in capitals ('caps_names' in feeds.json, the language's own rules for I/i)."""
+    lang = cfg.get("caps_names")
+    if not lang or not s or s != s.upper():
+        return s
+    s = re.sub(r"\s*\(", " (", s)
+
+    def word(w):
+        if len(w) <= 3 and not re.search(r"[AEIOUİÖÜ]", w):
+            return w  # abbreviations: YHT, HT
+        if lang == "tr":
+            low = w.replace("I", "ı").replace("İ", "i").lower()
+            head = {"i": "İ", "ı": "I"}.get(low[0], low[0].upper())
+            return head + low[1:]
+        return w.capitalize()
+
+    return re.sub(r"[^\W\d_]+", lambda m: word(m.group(0)), s)
+
+
 def transliterate(s):
     """German/Nordic spelling without special letters: München -> Muenchen."""
     for a, b in (("ä", "ae"), ("ö", "oe"), ("ü", "ue"), ("Ä", "Ae"), ("Ö", "Oe"), ("Ü", "Ue"), ("ß", "ss"),
-                 ("å", "aa"), ("ø", "oe"), ("æ", "ae")):
+                 ("å", "aa"), ("ø", "oe"), ("æ", "ae"), ("ı", "i"), ("İ", "I")):
         s = s.replace(a, b)
     return s
 
@@ -480,7 +547,7 @@ def names_alike(a, b):
         return False
     if ta <= tb or tb <= ta:
         return True
-    return len(ta & tb) / len(ta | tb) >= 0.5
+    return len(ta & tb) / len(ta | tb) > 0.5
 
 
 def dist_m(lat1, lon1, lat2, lon2):
@@ -653,13 +720,18 @@ def main():
                                               not re.search(r"[,/]", tidy_name(nodes[m][2]["name"])), node_dep[m]))]
         names = sorted({m[2]["name"] for m in members if m[2]["name"]})
         names += [t for t in {transliterate(n) for n in names} if t not in names]
-        latin = {latinize(n) for n in names} - {""}
+        latin = {latinize(n, best[3].country) for n in names} - {""}
         latin |= {LATIN_EXTRA[x] for x in latin if x in LATIN_EXTRA}
         names += [t for t in latin if t not in names]
         lats = [m[2]["lat"] for m in members if m[2]["lat"] is not None]
         lons = [m[2]["lon"] for m in members if m[2]["lon"] is not None]
         transfer = max([m[3].transfer.get(m[1], 0) for m in members] + [0]) or DEFAULT_TRANSFER
-        shown = latin_name(tidy_name(best[2]["name"]))
+        lang = best[3].country
+        shown = latin_name(tidy_name(best[2]["name"]), lang)
+        if shown != tidy_name(best[2]["name"]):
+            given = [n for n in names if not latinize(n) and names_alike(n, shown) and n not in latin]
+            if given:
+                shown = tidy_name(given[0])
         st.update({
             "name": shown, "alt": [n for n in names if n not in (shown, best[2]["name"]) or shown != tidy_name(best[2]["name"]) and n == best[2]["name"]],
             "lat": sum(lats) / len(lats) if lats else 0.0, "lon": sum(lons) / len(lons) if lons else 0.0,
@@ -787,19 +859,38 @@ def drop_duplicates(trips, stations, warnings):
         groups.setdefault(uf.find(i), []).append(i)
     keep = []
     dropped = 0
+
+    def pairs(t):
+        s = t["stops"]
+        return {(a[0], a[2] % 86400, b[0], b[1] % 86400) for a, b in zip(s, s[1:])}
+
     for members in groups.values():
         if len(members) == 1:
             keep.append(trips[members[0]])
             continue
-        best = max(members, key=lambda i: len(trips[i]["stops"]))
-        t = trips[best]
-        for i in members:
-            if i != best:
-                t["src"] += trips[i]["src"]
-                if not t["number"]:
-                    t["number"] = trips[i]["number"]
+        # Longest copies first. A copy is dropped only when the copies already kept run every one of its
+        # hops at the same times; a copy that adds a section or a stop the others lack is kept, so a
+        # border-to-border copy can never replace the full train. Feeds known to skip stops abroad
+        # ("dup_priority": 0) go last and are dropped when half of them is already covered.
+        order = sorted(members, key=lambda i: (trips[i]["feed"].cfg.get("dup_priority", 1), len(trips[i]["stops"])),
+                       reverse=True)
+        kept = []
+        for i in order:
+            t = trips[i]
+            mine = pairs(t)
+            covered = set()
+            for k, kp in kept:
+                covered |= mine & kp
+            need = 0.5 if t["feed"].cfg.get("dup_priority", 1) == 0 else 1.0
+            if kept and mine and len(covered) >= need * len(mine):
+                owner = max(kept, key=lambda kk: len(mine & kk[1]))[0]
+                owner["src"] += t["src"]
+                if not owner["number"]:
+                    owner["number"] = t["number"]
                 dropped += 1
-        keep.append(t)
+            else:
+                kept.append((t, mine))
+        keep.extend(t for t, _ in kept)
     log(f"duplicates: dropped {dropped} copies of trains that appear in two feeds")
     return keep
 

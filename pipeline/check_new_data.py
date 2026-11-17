@@ -67,8 +67,17 @@ def network_findings():
         if os.path.exists(info_path):
             with open(info_path, encoding="utf-8") as f:
                 old = json.load(f)
-        now = head(feed["url"], feed.get("headers"))
+        try:
+            sys.path.insert(0, HERE)
+            from download import resolve_url
+            url = resolve_url(feed)
+        except Exception:
+            continue
+        now = head(url, feed.get("headers"))
         if now is None:
+            continue
+        if feed.get("optional") and not old:
+            findings.append(f"{feed['id']} ({feed['name']}): now published, rebuild to include it")
             continue
         size, modified = now
         if not old:
