@@ -27,6 +27,27 @@ def load_feeds():
         return json.load(f)["feeds"]
 
 
+class MissingSecret(Exception):
+    pass
+
+
+def with_secrets(url, feed):
+    """'...?key={env:TRAFIKLAB_KEY}': the key comes from the environment (a GitHub Actions secret)."""
+    name = feed.get("secret")
+    if not name:
+        return url
+    value = os.environ.get(name)
+    if not value:
+        raise MissingSecret(f"{feed['id']}: secret {name} not set")
+    return url.replace("{env:" + name + "}", value)
+
+
+def public_url(url, feed):
+    """The link without its key, for files and logs."""
+    name = feed.get("secret")
+    return url.replace(os.environ.get(name, "\0"), "{" + name + "}") if name else url
+
+
 def resolve_url(feed):
     """The feed's download link. Some sources publish a new dated file each week; look up the newest."""
     ds = feed.get("data_public_lu_dataset")
@@ -45,6 +66,8 @@ def resolve_url(feed):
                                      headers={"User-Agent": UA, "Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=60) as r:
             return json.load(r)["items"][0]["distributions"][0]["downloadUrl"]
+    if feed.get("secret"):
+        return with_secrets(feed["url"], feed)
     if "url_year" in feed:  # one file per timetable year ("..._2026.zip"); +1 = next year's, once published
         return feed["url"].replace("{year}", str(time.gmtime().tm_year + feed["url_year"]))
     return feed["url"]
@@ -90,7 +113,7 @@ def download(feed):
         raise RuntimeError(f"{feed['id']}: got {got} bytes, expected {size}")
     os.replace(tmp, target)
     with open(info_path, "w", encoding="utf-8") as f:
-        json.dump({"url": url, "size": got, "last_modified": modified,
+        json.dump({"url": public_url(url, feed), "size": got, "last_modified": modified,
                    "downloaded": time.strftime("%Y-%m-%dT%H:%M:%S")}, f, indent=1)
     print(f"{feed['id']}: done {got / 1e6:.1f} MB in {time.time() - start:.0f}s", flush=True)
 
@@ -105,7 +128,7 @@ def download_retry(feed, tries=3):
             return True
         except Exception as e:
             print(f"{feed['id']}: try {attempt} failed: {e!r}", flush=True)
-            errors[feed["id"]] = repr(e)[:200]
+            errors[feed["id"]] = public_url(repr(e), feed)[:200]
             part = os.path.join(RAW, feed["id"] + ".zip.part")
             if os.path.exists(part):
                 os.remove(part)
@@ -119,6 +142,10 @@ def main():
     failed, kept = [], []
     for feed in load_feeds():
         if wanted and feed["id"] not in wanted:
+            continue
+        if feed.get("secret") and not os.environ.get(feed["secret"]):
+            # Only GitHub has the key: locally the last downloaded copy (if any) is used.
+            print(f"{feed['id']}: no {feed['secret']} here, using the previous copy if there is one")
             continue
         if not download_retry(feed, tries=1 if feed.get("optional") else 3):
             if feed.get("optional"):

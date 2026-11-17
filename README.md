@@ -44,12 +44,13 @@ python pipeline/query.py route "Muenchen Hbf" "Amsterdam Centraal" 2026-11-20 08
 | Hellenic Train + ferries (Greece) | Not stated (community conversion) | Source: Hellenic Train, converted by jbb.ghsq.de |
 | Srbijavoz (Serbia) | Not stated (community conversion) | Source: Srbijavoz, GTFS by vekejsn/gtfs-generators |
 | TCDD Taşımacılık main lines (Türkiye) | MIT (converter); source data not stated | Source: TCDD, GTFS by yasinkaraaslan/tcdd-gtfs |
+| GTFS Sverige 2 (Sweden, all operators; key from the TRAFIKLAB_KEY secret) | CC0 1.0 | Source: Samtrafiken / Trafiklab |
 | North Macedonia Railways | Not stated (community conversion) | Source: MŽ Transport, GTFS by deryclem |
 
 Live data used by the app (not stored here): OVapi train updates (Netherlands, CC0).
 
 **Not included yet** (of the 33 Interrail countries):
-- Need a free account or key (keys go into GitHub Actions secrets, never the app): Sweden (Trafiklab), Hungary (MÁV registration), Great Britain (National Rail Data Portal; CIF format needs a converter). Austria's non-ÖBB operators need a Mobilitätsverbünde account.
+- Need a free account or key (keys go into GitHub Actions secrets, never the app): Hungary (MÁV registration), Great Britain (National Rail Data Portal; CIF format needs a converter). Austria's non-ÖBB operators need a Mobilitätsverbünde account.
 - Current file not found: Croatia (the official HŽPP link still serves the 2024-25 timetable).
 - No usable open timetable: Italy (only a non-commercial proxy), Bosnia and Herzegovina (no rail feed).
 - Known gaps: Serbia's file lists Petrovaradin but not Novi Sad on Belgrade-Subotica trains; international trains split between two sources (e.g. EC Berlin-Prague: German data ends at Děčín) show as a change at the border.

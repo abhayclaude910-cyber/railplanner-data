@@ -37,6 +37,8 @@ jobs:
           restore-keys: raw-
 
       - name: Download feeds
+        env:
+          TRAFIKLAB_KEY: ${{ secrets.TRAFIKLAB_KEY }}
         run: python pipeline/download.py
 
       - name: Pick release tag

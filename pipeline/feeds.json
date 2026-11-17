@@ -396,6 +396,17 @@
       "credit": "Source: Македонски Железници Транспорт, GTFS by deryclem",
       "source_page": "https://mztransport.com.mk/",
       "name_priority": 2
+    },
+    {
+      "id": "se",
+      "country": "SE",
+      "name": "GTFS Sverige 2 (Sweden, all operators)",
+      "url": "https://api.resrobot.se/gtfs/sweden.zip?key={env:TRAFIKLAB_KEY}",
+      "secret": "TRAFIKLAB_KEY",
+      "licence": "CC0 1.0",
+      "credit": "Source: Samtrafiken / Trafiklab (GTFS Sverige 2, CC0)",
+      "source_page": "https://www.trafiklab.se/api/gtfs-datasets/gtfs-sverige-2/",
+      "name_priority": 2
     }
   ]
 }
