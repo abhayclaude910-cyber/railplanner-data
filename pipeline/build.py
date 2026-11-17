@@ -16,6 +16,7 @@ import json
 import math
 import os
 import re
+import statistics
 import shutil
 import sqlite3
 import sys
@@ -306,7 +307,7 @@ class FeedData:
             have = self.stations.get(key)
             if have is None:
                 self.stations[key] = {"name": name, "lat": lat or None, "lon": lon or None,
-                                      "uic": uic_of(didok or key)}
+                                      "uic": uic_of(didok) or uic_of(key, cfg.get("uic_from_id", ""))}
             elif not have["lat"] and lat:
                 have["lat"], have["lon"] = lat, lon
             self.stop_station.append((key, platform))
@@ -348,9 +349,18 @@ def km_outside(lat, lon, box):
     return math.hypot(dlat, dlon)
 
 
-def uic_of(code):
-    """7-digit UIC number from a station code, or ''."""
-    m = re.search(r"(?<!\d)(\d{7})(?!\d)", code or "")
+def uic_of(code, rule=""):
+    """7-digit UIC number from a station code, or ''.
+    rule (feeds.json "uic_from_id"): "padded" = zero-padded number ("000005457076" -> 5457076);
+    "czptt" = Czech id "czptt:stop:CZ:57076" -> 5457076."""
+    code = code or ""
+    if rule == "padded" and code.isdigit():
+        n = code.lstrip("0")
+        return n if len(n) == 7 and n[:2] in UIC_COUNTRY else ""
+    if rule == "czptt":
+        m = re.fullmatch(r"czptt:stop:CZ:(\d{5})", code)
+        return "54" + m.group(1) if m else ""
+    m = re.search(r"(?<!\d)(\d{7})(?!\d)", code)
     return m.group(1) if m else ""
 
 
@@ -384,6 +394,9 @@ def norm_name(s):
     s = unicodedata.normalize("NFKD", s)
     s = "".join(c for c in s if not unicodedata.combining(c))
     s = re.sub(r"\(.*?\)", " ", s)
+    # Czech / Slovak abbreviations: "Praha hl.n." = "Praha hlavní nádraží", "hl.st." = "hlavná stanica"
+    s = re.sub(r"(?<![a-z])hl\.?\s*n(?![a-z])\.?", " hlavni nadrazi ", s)
+    s = re.sub(r"(?<![a-z])hl\.?\s*st(?![a-z])\.?", " hlavna stanica ", s)
     s = s.replace("hauptbahnhof", "hbf").replace("centraal", "cs").replace("central", "cs")
     s = re.sub(r"[^a-z0-9]+", " ", s)
     return s.split()
@@ -734,7 +747,7 @@ def main():
                 shown = tidy_name(given[0])
         st.update({
             "name": shown, "alt": [n for n in names if n not in (shown, best[2]["name"]) or shown != tidy_name(best[2]["name"]) and n == best[2]["name"]],
-            "lat": sum(lats) / len(lats) if lats else 0.0, "lon": sum(lons) / len(lons) if lons else 0.0,
+            "lat": statistics.median(lats) if lats else 0.0, "lon": statistics.median(lons) if lons else 0.0,
             "country": country, "uic": uic, "transfer": transfer, "deps": dep_count[gid],
         })
     # Unknown country: take it from the nearest station that has a UIC number (within 30 km).

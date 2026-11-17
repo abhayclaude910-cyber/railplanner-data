@@ -319,7 +319,8 @@
       "licence": "CC BY 4.0",
       "credit": "Source: Rejsekort & Rejseplan A/S (Rejseplanen Labs)",
       "source_page": "https://labs.rejseplanen.dk/",
-      "name_priority": 2
+      "name_priority": 2,
+      "uic_from_id": "padded"
     },
     {
       "id": "cz",
@@ -330,7 +331,8 @@
       "credit": "Source: Správa železnic timetable data, GTFS by motis.obehy.cz",
       "source_page": "https://motis.obehy.cz/",
       "name_priority": 2,
-      "type_in_number": true
+      "type_in_number": true,
+      "uic_from_id": "czptt"
     },
     {
       "id": "si",
