@@ -459,7 +459,8 @@
         "EuroNight": "EN",
         "különvonat": "Special",
         "autóbusz": null,
-        "busz": null
+        "busz": null,
+        "S-Bahn": "S"
       }
     },
     {
@@ -485,7 +486,8 @@
         "EuroNight": "EN",
         "különvonat": "Special",
         "autóbusz": null,
-        "busz": null
+        "busz": null,
+        "S-Bahn": "S"
       }
     }
   ]

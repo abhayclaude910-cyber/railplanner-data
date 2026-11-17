@@ -169,7 +169,7 @@ class FeedData:
                 number, headsign = headsign, ""
             # Line code as route name and the train type in the number ("A3" + "RJX 19962", "R19" + "R 865"):
             # one route per line and type, named after the type, so the label reads "RJX 19962".
-            m = cfg.get("type_in_number") and re.fullmatch(r"([^\W\d_]{1,12})\s*(\d+)", number)
+            m = cfg.get("type_in_number") and re.fullmatch(r"([^\W\d_](?:[^\W\d_]|-){0,15})\s*(\d+)", number)
             if m:
                 # "type_names" (feeds.json) gives readable names ("xpress" -> "RJX"); null = not a train (bus)
                 names = cfg.get("type_names", {})
