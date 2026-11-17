@@ -113,6 +113,13 @@ class FeedData:
             # Line codes in front of the train type ("A3 RJX", "R19 R", "SI1 D") mean little to travellers.
             if cfg.get("route_short_strip"):
                 short = re.sub(cfg["route_short_strip"], "", short).strip() or short
+            # Line numbers as names ("425", "43"): show the service or the operator instead
+            # ("Pendeltåg", "SJ", "Öresundståg"), with the train number after it.
+            if cfg.get("numeric_short_label") and short.isdigit():
+                for name in (long_name, agency_name):
+                    if name and len(name) <= 16:
+                        short = name
+                        break
             # Train types written in the local alphabet ("БВ") get an English word from feeds.json.
             label = cfg.get("route_labels", {}).get(short)
             if label:

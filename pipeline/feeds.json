@@ -406,7 +406,8 @@
       "licence": "CC0 1.0",
       "credit": "Source: Samtrafiken / Trafiklab (GTFS Sverige 2, CC0)",
       "source_page": "https://www.trafiklab.se/api/gtfs-datasets/gtfs-sverige-2/",
-      "name_priority": 2
+      "name_priority": 2,
+      "numeric_short_label": true
     }
   ]
 }
