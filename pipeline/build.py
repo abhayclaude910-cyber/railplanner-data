@@ -123,7 +123,25 @@ class FeedData:
         # Trips we keep.
         self.trips = {}
         services = set()
+        # Some feeds (BDŽ) name the train type in the trip's route_id ("KPV_82201", "IVKONI-PV_80107")
+        # and do not always list those ids in routes.txt: build one route per train type instead.
+        pattern = cfg.get("trip_route_pattern")
+        if pattern:
+            labels = cfg.get("route_labels", {})
+            first_agency = next(iter(agencies.values()), "")
+            self.routes = {}
         for r in feed.rows("trips.txt"):
+            if pattern:
+                m = re.match(pattern, r["route_id"])
+                code = m.group("type") if m else ""
+                if code not in labels:  # e.g. "A" = replacement bus, like route_type 3 elsewhere
+                    continue
+                agency = (m.group("agency") or "").title() or first_agency
+                rid = f"{agency}:{code}"
+                if rid not in self.routes:
+                    self.routes[rid] = {"kind": "rail", "type": 2, "short": labels[code][0], "long": labels[code][1],
+                                        "agency": agency, "color": None}
+                r = dict(r, route_id=rid)
             if r["route_id"] not in self.routes:
                 continue
             headsign = (r.get("trip_headsign") or "").strip()

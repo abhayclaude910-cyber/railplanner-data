@@ -248,31 +248,28 @@
       "source_page": "https://gtfs.livetransport.eu/",
       "name_priority": 2,
       "route_labels": {
-        "ЕВ": [
+        "EV": [
           "Express",
           "Express train"
         ],
-        "БВ": [
+        "BV": [
           "Fast",
           "Fast train"
         ],
-        "МБВ": [
+        "MBV": [
           "Intl Fast",
           "International fast train"
         ],
-        "ПВ": [
+        "PV": [
           "Passenger",
           "Passenger train"
         ],
-        "КПВ": [
+        "KPV": [
           "Suburban",
           "Suburban train"
-        ],
-        "АВТ": [
-          "Bus",
-          "Replacement bus"
         ]
-      }
+      },
+      "trip_route_pattern": "^(?:(?P<agency>[A-Z]+)-)?(?P<type>[A-Z]+)(?:_\\d+)?$"
     }
   ]
 }
