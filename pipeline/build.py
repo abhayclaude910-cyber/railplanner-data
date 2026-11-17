@@ -113,6 +113,8 @@ class FeedData:
             # Line codes in front of the train type ("A3 RJX", "R19 R", "SI1 D") mean little to travellers.
             if cfg.get("route_short_strip"):
                 short = re.sub(cfg["route_short_strip"], "", short).strip() or short
+            if cfg.get("route_label"):  # one fixed label for the whole feed ("Eurostar")
+                short = cfg["route_label"]
             # Line numbers as names ("425", "43"): show the service or the operator instead
             # ("Pendeltåg", "SJ", "Öresundståg"), with the train number after it.
             if cfg.get("numeric_short_label") and short.isdigit():
@@ -720,6 +722,23 @@ def main():
                 "mask": mask, "number": t["number"], "headsign": t["headsign"], "bikes": t["bikes"],
             })
     log(f"trips: {len(trips)} with service in the next {NDAYS} days ({bad_trips} dropped for broken stations)")
+
+    # ---- the same train listed once per date range (Great Britain, Switzerland): one trip, running days combined
+    same = {}
+    combined = []
+    for t in trips:
+        k = (t["feed"].id, t["route"], t["number"], t["headsign"], t["bikes"],
+             tuple((x[0], x[1], x[2], x[3]) for x in t["stops"]))
+        o = same.get(k)
+        if o is None:
+            same[k] = t
+            combined.append(t)
+            continue
+        o["mask"] = (int.from_bytes(o["mask"], "little") | int.from_bytes(t["mask"], "little")).to_bytes(len(o["mask"]), "little")
+        if t["feed"].cfg.get("live") or len(o["src"]) < 4:  # live feeds match by trip id: keep them all
+            o["src"] += t["src"]
+    log(f"trips: {len(trips) - len(combined)} repeats of the same train combined, {len(combined)} left")
+    trips = combined
 
     # ---- station details: name, position, country, transfer time
     for gid, st in enumerate(stations):

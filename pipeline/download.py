@@ -31,21 +31,53 @@ class MissingSecret(Exception):
     pass
 
 
+def secret_names(feed):
+    return ([feed["secret"]] if feed.get("secret") else []) + list(feed.get("secrets", []))
+
+
+def ask_secrets(feed):
+    """Local one-off runs (RP_ASK_SECRETS=1): type the secrets in; they stay in this process only."""
+    if os.environ.get("RP_ASK_SECRETS") != "1" or not sys.stdin.isatty():
+        return
+    import getpass
+    for name in secret_names(feed):
+        if not os.environ.get(name):
+            os.environ[name] = getpass.getpass(f"{feed['id']}: {name} (not shown, not saved): ")
+
+
+def has_secrets(feed):
+    ask_secrets(feed)
+    return all(os.environ.get(n) for n in secret_names(feed))
+
+
 def with_secrets(url, feed):
     """'...?key={env:TRAFIKLAB_KEY}': the key comes from the environment (a GitHub Actions secret)."""
-    name = feed.get("secret")
-    if not name:
-        return url
-    value = os.environ.get(name)
-    if not value:
-        raise MissingSecret(f"{feed['id']}: secret {name} not set")
-    return url.replace("{env:" + name + "}", value)
+    for name in secret_names(feed):
+        value = os.environ.get(name)
+        if not value:
+            raise MissingSecret(f"{feed['id']}: secret {name} not set")
+        url = url.replace("{env:" + name + "}", value)
+    return url
 
 
 def public_url(url, feed):
-    """The link without its key, for files and logs."""
-    name = feed.get("secret")
-    return url.replace(os.environ.get(name, "\0"), "{" + name + "}") if name else url
+    """The link or message without any secret, for files and logs."""
+    for name in secret_names(feed):
+        value = os.environ.get(name)
+        if value:
+            url = url.replace(value, "{" + name + "}")
+    return url
+
+
+def nrdp_token():
+    """National Rail Data Portal: log in with the account (NRDP_EMAIL / NRDP_PASSWORD) for a token."""
+    import urllib.parse
+    body = urllib.parse.urlencode({"username": os.environ["NRDP_EMAIL"],
+                                   "password": os.environ["NRDP_PASSWORD"]}).encode()
+    req = urllib.request.Request("https://opendata.nationalrail.co.uk/authenticate", data=body,
+                                 headers={"User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.load(r)["token"]
 
 
 def resolve_url(feed):
@@ -66,7 +98,7 @@ def resolve_url(feed):
                                      headers={"User-Agent": UA, "Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=60) as r:
             return json.load(r)["items"][0]["distributions"][0]["downloadUrl"]
-    if feed.get("secret"):
+    if secret_names(feed):
         return with_secrets(feed["url"], feed)
     if "url_year" in feed:  # one file per timetable year ("..._2026.zip"); +1 = next year's, once published
         return feed["url"].replace("{year}", str(time.gmtime().tm_year + feed["url_year"]))
@@ -75,7 +107,9 @@ def resolve_url(feed):
 
 def download(feed):
     os.makedirs(RAW, exist_ok=True)
-    target = os.path.join(RAW, feed["id"] + ".zip")
+    convert = feed.get("convert")
+    gtfs_target = os.path.join(RAW, feed["id"] + ".zip")
+    target = os.path.join(RAW, feed["id"] + ".src.zip") if convert else gtfs_target
     info_path = os.path.join(RAW, feed["id"] + ".json")
     old = {}
     if os.path.exists(info_path) and os.path.exists(target):
@@ -83,12 +117,17 @@ def download(feed):
             old = json.load(f)
 
     url = resolve_url(feed)
-    req = urllib.request.Request(url, headers={"User-Agent": UA, **feed.get("headers", {})})
+    headers = {"User-Agent": UA, **feed.get("headers", {})}
+    if feed.get("login") == "nrdp":
+        headers["X-Auth-Token"] = nrdp_token()
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=180) as res:
         size = int(res.headers.get("Content-Length") or 0)
         modified = res.headers.get("Last-Modified") or ""
         if old and old.get("last_modified") == modified and old.get("size") == size and modified:
             print(f"{feed['id']}: unchanged ({size / 1e6:.1f} MB), skipped")
+            if convert and not os.path.exists(gtfs_target):
+                run_convert(feed, target, gtfs_target)
             return
         tmp = target + ".part"
         got = 0
@@ -116,6 +155,22 @@ def download(feed):
         json.dump({"url": public_url(url, feed), "size": got, "last_modified": modified,
                    "downloaded": time.strftime("%Y-%m-%dT%H:%M:%S")}, f, indent=1)
     print(f"{feed['id']}: done {got / 1e6:.1f} MB in {time.time() - start:.0f}s", flush=True)
+    if convert:
+        run_convert(feed, target, gtfs_target)
+
+
+def run_convert(feed, src, out):
+    """Turns a non-GTFS download into GTFS (Great Britain: CIF timetable -> GTFS)."""
+    if feed["convert"] == "cif":
+        sys.path.insert(0, HERE)
+        import cif
+        t = time.time()
+        tmp = out + ".part"
+        stats = cif.convert(src, tmp)
+        os.replace(tmp, out)
+        print(f"{feed['id']}: converted to GTFS in {time.time() - t:.0f}s: {stats}", flush=True)
+    else:
+        raise ValueError(f"unknown convert {feed['convert']}")
 
 
 errors = {}
@@ -143,9 +198,9 @@ def main():
     for feed in load_feeds():
         if wanted and feed["id"] not in wanted:
             continue
-        if feed.get("secret") and not os.environ.get(feed["secret"]):
+        if secret_names(feed) and not has_secrets(feed):
             # Only GitHub has the key: locally the last downloaded copy (if any) is used.
-            print(f"{feed['id']}: no {feed['secret']} here, using the previous copy if there is one")
+            print(f"{feed['id']}: no {', '.join(secret_names(feed))} here, using the previous copy if there is one")
             continue
         if not download_retry(feed, tries=1 if feed.get("optional") else 3):
             if feed.get("optional"):

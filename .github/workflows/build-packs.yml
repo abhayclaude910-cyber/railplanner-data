@@ -39,6 +39,8 @@ jobs:
       - name: Download feeds
         env:
           TRAFIKLAB_KEY: ${{ secrets.TRAFIKLAB_KEY }}
+          NRDP_EMAIL: ${{ secrets.NRDP_EMAIL }}
+          NRDP_PASSWORD: ${{ secrets.NRDP_PASSWORD }}
         run: python pipeline/download.py
 
       - name: Pick release tag

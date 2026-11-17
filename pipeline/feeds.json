@@ -408,6 +408,33 @@
       "source_page": "https://www.trafiklab.se/api/gtfs-datasets/gtfs-sverige-2/",
       "name_priority": 2,
       "numeric_short_label": true
+    },
+    {
+      "id": "gb",
+      "country": "GB",
+      "name": "National Rail timetable (Great Britain)",
+      "url": "https://opendata.nationalrail.co.uk/api/staticfeeds/3.0/timetable",
+      "login": "nrdp",
+      "secrets": [
+        "NRDP_EMAIL",
+        "NRDP_PASSWORD"
+      ],
+      "convert": "cif",
+      "licence": "National Rail open data (NRDP terms)",
+      "credit": "Source: Rail Delivery Group, National Rail Data Portal",
+      "source_page": "https://opendata.nationalrail.co.uk/",
+      "name_priority": 2
+    },
+    {
+      "id": "eurostar",
+      "country": "FR",
+      "name": "Eurostar (London, Paris, Brussels, Amsterdam, Cologne)",
+      "url": "https://integration-storage.dm.eurostar.com/gtfs-prod/gtfs_static_commercial_v2.zip",
+      "licence": "Licence Ouverte 2.0",
+      "credit": "Source: Eurostar, via data.gouv.fr (Licence Ouverte 2.0)",
+      "source_page": "https://www.data.gouv.fr/datasets/eurostar-gtfs",
+      "name_priority": 1,
+      "route_label": "Eurostar"
     }
   ]
 }
