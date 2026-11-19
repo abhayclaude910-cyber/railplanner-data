@@ -89,14 +89,19 @@ def network_findings():
     tag, built, in_release = release
     age = (datetime.now(timezone.utc) - built).days
     changed = []
-    for feed in feeds:
+    sys.path.insert(0, HERE)
+    from download import resolve_url
+    from concurrent.futures import ThreadPoolExecutor
+
+    def probe(feed):  # all feeds at once: the hook has a 60 s limit
         try:
-            sys.path.insert(0, HERE)
-            from download import resolve_url
-            url = resolve_url(feed)
+            return head(resolve_url(feed), feed.get("headers"))
         except Exception:
-            continue
-        now = head(url, feed.get("headers"))
+            return None
+
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        results = list(pool.map(probe, feeds))
+    for feed, now in zip(feeds, results):
         if now is None:
             continue
         if feed["id"] not in in_release:
