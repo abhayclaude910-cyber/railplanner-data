@@ -22,7 +22,9 @@ The app downloads `manifest.json`, compares `version` and `sha256`, downloads ch
 ## stations_index.sqlite (shipped in the app)
 | table | columns |
 |---|---|
-| `stations` | id, name, alt (other names, `" \| "`-separated), lat, lon, country (ISO, `??` = unknown), uic, rank (departures per day), packs (`DE,NL`: packs that serve it) |
+| `stations` | id, name, alt (other names, `" \| "`-separated), lat, lon, country (ISO, `??` = unknown), uic, rank (departures per day), packs (`DE,NL`: packs that serve it), members (NULL for a station) |
+
+City entries ("Milano (all stations)", built by `pipeline/cities.py`) are rows of `stations` with id >= 10000000 and `members` = the station ids of that city (`"8100,385,..."`, busiest first). Their first alt is the plain city name; the search table indexes only the alts for them, so "all" and "stations" are not search words. Apps plan from or to every member, with no walk time.
 | `stations_fts` | FTS5 over name + alt, diacritics removed, prefix search (`"amst"*`) |
 
 ## <cc>.sqlite (one per country)

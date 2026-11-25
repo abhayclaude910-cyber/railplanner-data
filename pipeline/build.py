@@ -27,6 +27,7 @@ from datetime import date, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gtfs import Feed, kind_of, parse_time, service_days  # noqa: E402
+import cities  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -1044,7 +1045,7 @@ def write_index(path, version, stations, trips, pack_countries):
         PRAGMA page_size=4096; PRAGMA journal_mode=OFF; PRAGMA synchronous=OFF;
         CREATE TABLE meta(key TEXT PRIMARY KEY, value TEXT) WITHOUT ROWID;
         CREATE TABLE stations(id INTEGER PRIMARY KEY, name TEXT NOT NULL, alt TEXT, lat REAL, lon REAL,
-                              country TEXT, uic TEXT, rank INTEGER, packs TEXT);
+                              country TEXT, uic TEXT, rank INTEGER, packs TEXT, members TEXT);
         CREATE VIRTUAL TABLE stations_fts USING fts5(name, alt, content='stations', content_rowid='id',
                               tokenize='unicode61 remove_diacritics 2', prefix='1 2 3');
     """)
@@ -1055,8 +1056,12 @@ def write_index(path, version, stations, trips, pack_countries):
             continue
         rows.append((g, s["name"], " | ".join(s["alt"]) or None, round(s["lat"], 6), round(s["lon"], 6),
                      s["country"], s["uic"] or None, round(s.get("per_day", 0)), ",".join(sorted(packs_at[g]))))
-    db.executemany("INSERT INTO stations VALUES(?,?,?,?,?,?,?,?,?)", rows)
-    db.execute("INSERT INTO stations_fts(rowid, name, alt) SELECT id, name, coalesce(alt,'') FROM stations")
+    db.executemany("INSERT INTO stations VALUES(?,?,?,?,?,?,?,?,?,NULL)", rows)
+    # City rows ("Milano (all stations)", members = its station ids); searched by the plain city name,
+    # which is the first alt, so "all" and "stations" are not search words.
+    log(f"index: {cities.add_to_index(db)} cities")
+    db.execute("INSERT INTO stations_fts(rowid, name, alt) SELECT id, CASE WHEN members IS NULL THEN name "
+               "ELSE '' END, coalesce(alt,'') FROM stations")
     db.execute("INSERT INTO stations_fts(stations_fts) VALUES('optimize')")
     db.commit()
     db.execute("VACUUM")
