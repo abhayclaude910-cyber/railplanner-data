@@ -64,7 +64,8 @@
       "credit": "Source: SNCF Voyageurs, via transport.data.gouv.fr (ODbL)",
       "source_page": "https://transport.data.gouv.fr/datasets/horaires-sncf",
       "name_priority": 2,
-      "code_route_label": "SNCF"
+      "code_route_label": "SNCF",
+      "live": true
     },
     {
       "id": "es",
@@ -88,7 +89,8 @@
       "headers": {
         "Accept-Encoding": "gzip",
         "Digitraffic-User": "railplanner-data/0.1"
-      }
+      },
+      "live": true
     },
     {
       "id": "no-vyg",
@@ -99,7 +101,8 @@
       "credit": "Source: Entur (NLOD)",
       "source_page": "https://developer.entur.org/stops-and-timetable-data",
       "name_priority": 2,
-      "id_space": "entur"
+      "id_space": "entur",
+      "live": true
     },
     {
       "id": "no-goa",
@@ -110,7 +113,8 @@
       "credit": "Source: Entur (NLOD)",
       "source_page": "https://developer.entur.org/stops-and-timetable-data",
       "name_priority": 2,
-      "id_space": "entur"
+      "id_space": "entur",
+      "live": true
     },
     {
       "id": "no-sjn",
@@ -121,7 +125,8 @@
       "credit": "Source: Entur (NLOD)",
       "source_page": "https://developer.entur.org/stops-and-timetable-data",
       "name_priority": 2,
-      "id_space": "entur"
+      "id_space": "entur",
+      "live": true
     },
     {
       "id": "no-flt",
@@ -132,7 +137,8 @@
       "credit": "Source: Entur (NLOD)",
       "source_page": "https://developer.entur.org/stops-and-timetable-data",
       "name_priority": 2,
-      "id_space": "entur"
+      "id_space": "entur",
+      "live": true
     },
     {
       "id": "be",
@@ -142,7 +148,8 @@
       "licence": "SNCB public data (free)",
       "credit": "Source: SNCB/NMBS public data",
       "source_page": "https://www.belgiantrain.be/en/3rd-party-services/mobility-service-providers/public-data",
-      "name_priority": 2
+      "name_priority": 2,
+      "live": true
     },
     {
       "id": "ie",
