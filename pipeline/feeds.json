@@ -489,6 +489,28 @@
         "busz": null,
         "S-Bahn": "S"
       }
+    },
+    {
+      "id": "hr",
+      "country": "HR",
+      "name": "HŽ Putnički prijevoz (Croatia)",
+      "url": "https://www.hzpp.hr/GTFS_files.zip",
+      "licence": "open data (data.gov.hr, published for reuse in applications)",
+      "credit": "Source: HŽ Putnički prijevoz, via data.gov.hr",
+      "source_page": "https://data.gov.hr/ckan/dataset/vozni-red-h-putni-kog-prijevoza-u-gtfs-obliku",
+      "name_priority": 1,
+      "default_label": "HŽPP"
+    },
+    {
+      "id": "it-trenord",
+      "country": "IT",
+      "name": "Trenord (Lombardy regional trains, Italy)",
+      "url": "https://www.dati.lombardia.it/download/3z4k-mxz9/application%2Fzip",
+      "licence": "CC BY 4.0",
+      "credit": "Source: Trenord, via dati.lombardia.it (CC BY 4.0)",
+      "source_page": "https://www.dati.lombardia.it/d/3z4k-mxz9",
+      "name_priority": 1,
+      "number_after": " - "
     }
   ]
 }

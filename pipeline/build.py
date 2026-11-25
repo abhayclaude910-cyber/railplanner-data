@@ -163,6 +163,9 @@ class FeedData:
                 continue
             headsign = (r.get("trip_headsign") or "").strip()
             number = (r.get("trip_short_name") or "").strip()
+            sep = cfg.get("number_after")  # Trenord: "RE_2 - 2215" -> "2215" (the line is already the route)
+            if sep and sep in number:
+                number = number.split(sep, 1)[1].strip()
             if number.isdigit():
                 number = number.lstrip("0") or number  # "000031" -> "31"
             if not number and headsign.isdigit():  # SNCF puts the train number in the headsign
