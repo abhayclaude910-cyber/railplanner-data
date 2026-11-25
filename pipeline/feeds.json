@@ -170,7 +170,8 @@
       "credit": "Source: Administration des transports publics, data.public.lu",
       "source_page": "https://data.public.lu/",
       "name_priority": 2,
-      "data_public_lu_dataset": "horaires-et-arrets-des-transport-publics-gtfs"
+      "data_public_lu_dataset": "horaires-et-arrets-des-transport-publics-gtfs",
+      "bus_agency": "^Société Nationale des Chemins de Fer Luxembourgeois$"
     },
     {
       "id": "pt",

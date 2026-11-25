@@ -26,7 +26,7 @@ from array import array
 from datetime import date, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gtfs import Feed, kind_of, parse_time, service_days  # noqa: E402
+from gtfs import Feed, is_bus, kind_of, parse_time, service_days  # noqa: E402
 import cities  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -101,12 +101,17 @@ class FeedData:
             except ValueError:
                 continue
             kind = kind_of(rt)
+            agency_name = agencies.get(r.get("agency_id", ""), "")
+            # Buses run by the railway itself ("bus_agency" regex, feeds.json) are mostly rail
+            # replacement buses: without them a line closed for works has no journey at all
+            # (CFL closes Luxembourg-Mersch on some weekends and runs buses L10/L11 instead).
+            if not kind and is_bus(rt) and cfg.get("bus_agency") and re.search(cfg["bus_agency"], agency_name):
+                kind = "coach"
             if not kind:
                 continue
             color = (r.get("route_color") or "").strip()
             short = (r.get("route_short_name") or "").strip()
             # Internal line codes ("601A" in the SNCF feed) mean nothing to travellers.
-            agency_name = agencies.get(r.get("agency_id", ""), "")
             if re.fullmatch(r"\d{3}[A-Z]", short) and (
                     cfg.get("code_route_label") or re.search(r"SNCF|Chemins de fer Fran", agency_name)):
                 short = cfg.get("code_route_label") or "SNCF"

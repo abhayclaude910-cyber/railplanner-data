@@ -8,6 +8,11 @@ from datetime import date, timedelta
 RAIL = set([2]) | set(range(100, 118))
 FERRY = set([4]) | set(range(1000, 1100)) | set([1200])
 COACH = set(range(200, 210))
+BUS = set([3]) | set(range(700, 717))
+
+
+def is_bus(route_type):
+    return route_type in BUS
 
 
 def kind_of(route_type):
